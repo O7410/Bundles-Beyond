@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "bundles-beyond",
+	"version": "1.0",
+	"name": "Bundles Beyond",
+	"description": "Allows you to access every item in the bundle beyond the vanilla 8 item limit in 24w33a.",
+	"authors": [
+		"7410"
+	],
+	"contact": {
+		"homepage": "https://github.com/O7410/Bundles-Beyond",
+		"sources": "https://github.com/O7410/Bundles-Beyond"
+	},
+	"license": "CC-BY-NC-SA 4.0",
+	"icon": "assets/bundles-beyond/icon.png",
+	"environment": "client",
+	"entrypoints": {
+	},
+	"mixins": [
+		{
+			"config": "bundles-beyond.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.15.11",
+		"minecraft": ">=1.21-alpha.24.33.a",
+		"java": ">=21"
+	},
+	"suggests": {
+	}
+}

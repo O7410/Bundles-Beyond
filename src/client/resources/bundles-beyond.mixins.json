@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "o7410.bundlesbeyond.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"BundleContentsComponentMixin",
+		"BundleTooltipComponentMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
