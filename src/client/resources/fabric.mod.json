@@ -1,15 +1,16 @@
 {
 	"schemaVersion": 1,
 	"id": "bundles-beyond",
-	"version": "1.0",
+	"version": "1.1",
 	"name": "Bundles Beyond",
 	"description": "Allows you to access every item in the bundle beyond the vanilla 8 item limit in 24w33a.",
 	"authors": [
 		"7410"
 	],
 	"contact": {
-		"homepage": "https://github.com/O7410/Bundles-Beyond",
-		"sources": "https://github.com/O7410/Bundles-Beyond"
+		"homepage": "https://modrinth.com/mod/bundles-beyond",
+		"sources": "https://github.com/O7410/Bundles-Beyond",
+		"issues": "https://github.com/O7410/Bundles-Beyond/issues"
 	},
 	"license": "CC-BY-NC-SA 4.0",
 	"icon": "assets/bundles-beyond/icon.png",
@@ -23,10 +24,17 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.15.11",
+		"fabricloader": ">=0.16.2",
 		"minecraft": ">=1.21-alpha.24.33.a",
 		"java": ">=21"
 	},
 	"suggests": {
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.modrinth": "https://modrinth.com/mod/bundles-beyond"
+			}
+		}
 	}
 }
