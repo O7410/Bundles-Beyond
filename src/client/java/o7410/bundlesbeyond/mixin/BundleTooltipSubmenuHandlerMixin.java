@@ -20,7 +20,7 @@ public abstract class BundleTooltipSubmenuHandlerMixin {
     @Shadow @Final private MinecraftClient client;
 
     @ModifyExpressionValue(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/input/Scroller;scrollCycling(DII)I"))
-    private int changeScrollBehavior(int original, @Local Vector2i scrollOffset, @Local(name = "i") int scrollAmount, @Local(name = "j") int size, @Local(name = "k") int selectedIndex) {
+    private int changeScrollBehavior(int original, @Local Vector2i scrollOffset, @Local(name = "i") int size, @Local(name = "j") int scrollAmount, @Local(name = "k") int selectedIndex) {
         if (!BundlesBeyondClient.isModEnabled() || BundlesBeyondClient.scrollAxisKeybindMode == ScrollAxisKeybindMode.VANILLA) return original;
         int width = BundleTooltipAdditions.getModifiedBundleTooltipColumns(size);
         int height = BundleTooltipAdditions.getModifiedBundleTooltipRows(size, width);
