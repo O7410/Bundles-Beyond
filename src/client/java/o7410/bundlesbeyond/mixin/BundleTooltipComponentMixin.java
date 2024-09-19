@@ -1,6 +1,5 @@
 package o7410.bundlesbeyond.mixin;
 
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.tooltip.BundleTooltipComponent;
 import net.minecraft.component.type.BundleContentsComponent;
 import o7410.bundlesbeyond.BundleTooltipAdditions;
@@ -54,10 +53,10 @@ public abstract class BundleTooltipComponentMixin {
         return 24 * BundleTooltipAdditions.getModifiedBundleTooltipColumns(this.bundleContents.size());
     }
 
-    @Inject(method = "getWidth", at = @At("HEAD"), cancellable = true)
-    private void changeTooltipWidth(TextRenderer textRenderer, CallbackInfoReturnable<Integer> cir) {
-        if (!BundlesBeyondClient.isModEnabled()) return;
-        cir.setReturnValue(24 * BundleTooltipAdditions.getModifiedBundleTooltipColumns(this.bundleContents.size()));
+    @ModifyConstant(method = "getWidth", constant = @Constant(intValue = 96))
+    private int changeTooltipWidth(int constant) {
+        if (!BundlesBeyondClient.isModEnabled()) return constant;
+        return 24 * BundleTooltipAdditions.getModifiedBundleTooltipColumns(this.bundleContents.size());
     }
 
     @ModifyConstant(method = "getProgressBarFill", constant = @Constant(intValue = 94))
