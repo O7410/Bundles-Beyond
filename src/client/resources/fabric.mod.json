@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "bundles-beyond",
-	"version": "1.2",
+	"version": "1.2+1.21.2",
 	"name": "Bundles Beyond",
 	"description": "Allows you to access every item in the bundle beyond the vanilla 12 item limit in the snapshots for 1.21.2.",
 	"authors": [
@@ -27,9 +27,9 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.16.5",
-		"minecraft": ">=1.21.2-beta.1",
-		"fabric-api": ">=0.105.3+1.21.2",
+		"fabricloader": ">=0.16.7",
+		"minecraft": ">=1.21.2-",
+		"fabric-api": "*",
 		"java": ">=21"
 	},
 	"suggests": {
