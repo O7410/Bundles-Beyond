@@ -39,7 +39,7 @@ public abstract class HandledScreenMixin {
     }
 
     @Unique
-    public List<TooltipSubmenuHandler> getTooltipSubmenuHandlers() {
+    protected List<TooltipSubmenuHandler> getTooltipSubmenuHandlers() {
         return tooltipSubmenuHandlers;
     }
 }

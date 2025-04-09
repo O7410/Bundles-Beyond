@@ -23,13 +23,10 @@ public class BundlesBeyondClient implements ClientModInitializer {
 
     public static KeyBinding scrollAxisKey;
     public static KeyBinding modEnabledKey;
-    public static ScrollAxisKeybindMode scrollAxisKeybindMode = ScrollAxisKeybindMode.VANILLA;
-    public static boolean modEnabledKeyModeOnToggle = true;
-    public static boolean modEnabledWhenOnToggle = true;
-    public static boolean scrollingToggledHorizontal = true;
 
     public static boolean isModEnabled() {
-        return modEnabledKeyModeOnToggle ? modEnabledWhenOnToggle : InputUtil.isKeyPressed(
+        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
+        return config.modEnabledKeyModeOnToggle ? config.modEnabledWhenOnToggle : InputUtil.isKeyPressed(
                 MinecraftClient.getInstance().getWindow().getHandle(),
                 ((KeyBindingAccessor) BundlesBeyondClient.modEnabledKey).getBoundKey().getCode()
         );
@@ -38,21 +35,23 @@ public class BundlesBeyondClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         scrollAxisKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key." + MOD_ID + ".scroll_axis", // The translation key of the keybinding's name
-                InputUtil.UNKNOWN_KEY.getCode(), // The keycode of the key
-                "category." + MOD_ID + ".bundles_beyond" // The translation key of the keybinding's category.
+                "key." + MOD_ID + ".scroll_axis",
+                InputUtil.UNKNOWN_KEY.getCode(),
+                "category." + MOD_ID + ".bundles_beyond"
         ));
         modEnabledKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key." + MOD_ID + ".mod_enabled", // The translation key of the keybinding's name
-                InputUtil.UNKNOWN_KEY.getCode(), // The keycode of the key
-                "category." + MOD_ID + ".bundles_beyond" // The translation key of the keybinding's category.
+                "key." + MOD_ID + ".mod_enabled",
+                InputUtil.UNKNOWN_KEY.getCode(),
+                "category." + MOD_ID + ".bundles_beyond"
         ));
+
+        BundlesBeyondConfig.HANDLER.load();
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
             dispatcher.register(ClientCommandManager.literal("bundlesbeyond")
                     .then(ClientCommandManager.literal("mod_enabled")
                             .executes(context -> {
-                                context.getSource().sendFeedback(Text.literal("Bundles Beyond is currently " + (modEnabledWhenOnToggle ? "enabled" : "disabled")));
+                                context.getSource().sendFeedback(Text.literal("Bundles Beyond is currently " + (BundlesBeyondConfig.instance().modEnabledWhenOnToggle ? "enabled" : "disabled")));
                                 return 0;
                             })
                             .then(ClientCommandManager.argument("value", BoolArgumentType.bool())
@@ -60,7 +59,7 @@ public class BundlesBeyondClient implements ClientModInitializer {
                     )
                     .then(ClientCommandManager.literal("mod_enabled_keybind_mode")
                             .executes(context -> {
-                                context.getSource().sendFeedback(Text.literal("Mod enable keybind mode is currently " + (modEnabledKeyModeOnToggle ? "toggle" : "hold")));
+                                context.getSource().sendFeedback(Text.literal("Mod enable keybind mode is currently " + (BundlesBeyondConfig.instance().modEnabledKeyModeOnToggle ? "toggle" : "hold")));
                                 return 0;
                             })
                             .then(ClientCommandManager.literal("hold")
@@ -70,30 +69,49 @@ public class BundlesBeyondClient implements ClientModInitializer {
                     )
                     .then(ClientCommandManager.literal("scroll_axis_keybind_mode")
                             .executes(context -> {
-                                context.getSource().sendFeedback(Text.literal("Scroll axis keybind mode is currently: ").append(scrollAxisKeybindMode.getDescription()));
+                                context.getSource().sendFeedback(Text.literal("Scroll axis keybind mode is currently: ").append(BundlesBeyondConfig.instance().scrollAxisKeybindMode.getDescriptionText()));
                                 return 0;
                             })
                             .then(ClientCommandManager.argument("mode", new EnumArgumentType<>(ScrollAxisKeybindMode.CODEC, ScrollAxisKeybindMode::values) {})
+                                    .suggests((context, builder) -> {
+                                        for (ScrollAxisKeybindMode scrollAxisKeybindMode : ScrollAxisKeybindMode.values()) {
+                                            builder.suggest(scrollAxisKeybindMode.id, scrollAxisKeybindMode.getDescriptionText());
+                                        }
+                                        return builder.buildFuture();
+                                    })
                                     .executes(context -> {
-                                        scrollAxisKeybindMode = context.getArgument("mode", ScrollAxisKeybindMode.class);
-                                        context.getSource().sendFeedback(Text.literal("Scroll axis keybind mode is now: ").append(scrollAxisKeybindMode.getDescription()));
+                                        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
+                                        config.scrollAxisKeybindMode = context.getArgument("mode", ScrollAxisKeybindMode.class);
+                                        BundlesBeyondConfig.HANDLER.save();
+                                        context.getSource().sendFeedback(Text.literal("Scroll axis keybind mode is now: ").append(config.scrollAxisKeybindMode.getDescriptionText()));
                                         return 0;
                                     })
                             )
                     )
+                    .then(ClientCommandManager.literal("reloadconfig")
+                            .executes(context -> {
+                                if (BundlesBeyondConfig.HANDLER.load()) {
+                                    context.getSource().sendFeedback(Text.literal("Reloaded Bundles Beyond config"));
+                                } else {
+                                    context.getSource().sendFeedback(Text.literal("Failed to reload Bundles Beyond config"));
+                                }
+                                return 0;
+                            }))
             )
         );
     }
 
     private static int executeSetModEnabled(CommandContext<FabricClientCommandSource> context, boolean newValue) {
-        modEnabledWhenOnToggle = newValue;
-        context.getSource().sendFeedback(Text.literal("Bundles Beyond is now " + (modEnabledWhenOnToggle ? "enabled" : "disabled")));
+        BundlesBeyondConfig.instance().modEnabledWhenOnToggle = newValue;
+        BundlesBeyondConfig.HANDLER.save();
+        context.getSource().sendFeedback(Text.literal("Bundles Beyond is now " + (BundlesBeyondConfig.instance().modEnabledWhenOnToggle ? "enabled" : "disabled")));
         return 0;
     }
 
     private static int executeSetModEnabledKeybindMode(CommandContext<FabricClientCommandSource> context, boolean newModEnabledKeyOnToggle) {
-        modEnabledKeyModeOnToggle = newModEnabledKeyOnToggle;
-        context.getSource().sendFeedback(Text.literal("Mod enable keybind mode is now " + (modEnabledKeyModeOnToggle ? "toggle" : "hold")));
+        BundlesBeyondConfig.instance().modEnabledKeyModeOnToggle = newModEnabledKeyOnToggle;
+        BundlesBeyondConfig.HANDLER.save();
+        context.getSource().sendFeedback(Text.literal("Mod enable keybind mode is now " + (BundlesBeyondConfig.instance().modEnabledKeyModeOnToggle ? "toggle" : "hold")));
         return 0;
     }
 }

@@ -2,6 +2,8 @@ package o7410.bundlesbeyond;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.GameOptions;
 import net.minecraft.item.BundleItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.BundleItemSelectedC2SPacket;
@@ -13,13 +15,16 @@ import org.lwjgl.glfw.GLFW;
 public class BundleTooltipAdditions {
 
     public static boolean handleKeybindsInBundleGui(ItemStack stack, int slotId, int keyCode, int scanCode) {
-        if (BundlesBeyondClient.modEnabledKeyModeOnToggle && keyCode == ((KeyBindingAccessor) BundlesBeyondClient.modEnabledKey).getBoundKey().getCode()) {
-            BundlesBeyondClient.modEnabledWhenOnToggle = !BundlesBeyondClient.modEnabledWhenOnToggle;
-            if (MinecraftClient.getInstance().player != null) {
-                MinecraftClient.getInstance().player.sendMessage(Text.literal("Bundles Beyond " + (BundlesBeyondClient.modEnabledWhenOnToggle ? "enabled" : "disabled")), true);
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
+        if (config.modEnabledKeyModeOnToggle && keyCode == ((KeyBindingAccessor) BundlesBeyondClient.modEnabledKey).getBoundKey().getCode()) {
+            config.modEnabledWhenOnToggle = !config.modEnabledWhenOnToggle;
+            BundlesBeyondConfig.HANDLER.save();
+            if (player != null) {
+                player.sendMessage(Text.literal("Bundles Beyond " + (config.modEnabledWhenOnToggle ? "enabled" : "disabled")), true);
             }
             int selectedIndex = BundleItem.getSelectedStackIndex(stack);
-            if (BundlesBeyondClient.modEnabledWhenOnToggle) return true;
+            if (config.modEnabledWhenOnToggle) return true;
             int shownStacksWhenDisabled = BundleItem.getNumberOfStacksShown(stack);
             if (selectedIndex >= shownStacksWhenDisabled) {
                 selectedIndex = -1;
@@ -34,13 +39,12 @@ public class BundleTooltipAdditions {
 
         if (!BundlesBeyondClient.isModEnabled()) return false;
 
-        if (
-                BundlesBeyondClient.scrollAxisKeybindMode == ScrollAxisKeybindMode.TOGGLE &&
-                keyCode == ((KeyBindingAccessor) BundlesBeyondClient.scrollAxisKey).getBoundKey().getCode()
-        ) {
-            BundlesBeyondClient.scrollingToggledHorizontal = !BundlesBeyondClient.scrollingToggledHorizontal;
-            if (MinecraftClient.getInstance().player != null) {
-                MinecraftClient.getInstance().player.sendMessage(Text.literal("Now scrolling " + (BundlesBeyondClient.scrollingToggledHorizontal ? "horizontally" : "vertically")), true);
+        if (config.scrollAxisKeybindMode == ScrollAxisKeybindMode.TOGGLE &&
+                keyCode == ((KeyBindingAccessor) BundlesBeyondClient.scrollAxisKey).getBoundKey().getCode()) {
+            config.scrollingToggledHorizontal = !config.scrollingToggledHorizontal;
+            BundlesBeyondConfig.HANDLER.save();
+            if (player != null) {
+                player.sendMessage(Text.literal("Now scrolling " + (config.scrollingToggledHorizontal ? "horizontally" : "vertically")), true);
             }
             return true;
         }
@@ -50,14 +54,21 @@ public class BundleTooltipAdditions {
         if (size == 0) return false;
         int width = BundleTooltipAdditions.getModifiedBundleTooltipColumns(size);
         int height = BundleTooltipAdditions.getModifiedBundleTooltipRows(size, width);
-        switch (keyCode) {
-            case GLFW.GLFW_KEY_W, GLFW.GLFW_KEY_UP -> selectedIndex = BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, -1);
-            case GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT -> selectedIndex = BundleTooltipAdditions.offsetHorizontal(size, width, height, selectedIndex, -1);
-            case GLFW.GLFW_KEY_S, GLFW.GLFW_KEY_DOWN -> selectedIndex = BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, 1);
-            case GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_RIGHT -> selectedIndex = BundleTooltipAdditions.offsetHorizontal(size, width, height, selectedIndex, 1);
-            default -> {
-                return false;
-            }
+        GameOptions gameOptions = MinecraftClient.getInstance().options;
+        int forwardCode = ((KeyBindingAccessor) gameOptions.forwardKey).getBoundKey().getCode();
+        int leftCode = ((KeyBindingAccessor) gameOptions.leftKey).getBoundKey().getCode();
+        int backCode = ((KeyBindingAccessor) gameOptions.backKey).getBoundKey().getCode();
+        int rightCode = ((KeyBindingAccessor) gameOptions.rightKey).getBoundKey().getCode();
+        if (keyCode == forwardCode || keyCode == GLFW.GLFW_KEY_UP) {
+            selectedIndex = BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, -1);
+        } else if (keyCode == leftCode || keyCode == GLFW.GLFW_KEY_LEFT) {
+            selectedIndex = BundleTooltipAdditions.offsetHorizontal(size, width, height, selectedIndex, -1);
+        } else if (keyCode == backCode || keyCode == GLFW.GLFW_KEY_DOWN) {
+            selectedIndex = BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, 1);
+        } else if (keyCode == rightCode || keyCode == GLFW.GLFW_KEY_RIGHT) {
+            selectedIndex = BundleTooltipAdditions.offsetHorizontal(size, width, height, selectedIndex, 1);
+        } else {
+            return false;
         }
         if (selectedIndex == -1) return false;
 
