@@ -1,9 +1,9 @@
 {
 	"schemaVersion": 1,
 	"id": "bundles-beyond",
-	"version": "1.2.1+1.21.3",
+	"version": "${version}",
 	"name": "Bundles Beyond",
-	"description": "Allows you to access every item in the bundle beyond the vanilla 12 item limit in 1.21.2+.",
+	"description": "Allows you to access every item in the bundle beyond the vanilla 12 item limit",
 	"authors": [
 		"7410"
 	],
@@ -30,11 +30,10 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.16.9",
-		"minecraft": ">=1.21.3",
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "${mc_version_range}",
 		"fabric-api": "*",
-		"java": ">=21",
-		"yet_another_config_lib_v3": ">=3.6.1"
+		"java": ">=21"
 	},
 	"suggests": {
 		"modmenu": "*"

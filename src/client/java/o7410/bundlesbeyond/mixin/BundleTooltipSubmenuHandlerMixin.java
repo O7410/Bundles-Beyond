@@ -2,11 +2,12 @@ package o7410.bundlesbeyond.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.tooltip.BundleTooltipSubmenuHandler;
 import net.minecraft.client.util.InputUtil;
 import o7410.bundlesbeyond.BundlesBeyondConfig;
-import o7410.bundlesbeyond.ScrollAxisKeybindMode;
+import o7410.bundlesbeyond.ScrollMode;
 import o7410.bundlesbeyond.BundleTooltipAdditions;
 import o7410.bundlesbeyond.BundlesBeyondClient;
 import org.joml.Vector2i;
@@ -23,14 +24,15 @@ public abstract class BundleTooltipSubmenuHandlerMixin {
     @ModifyExpressionValue(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/input/Scroller;scrollCycling(DII)I"))
     private int changeScrollBehavior(int original, @Local Vector2i scrollOffset, @Local(ordinal = 1) int size, @Local(ordinal = 2) int scrollAmount, @Local(ordinal = 3) int selectedIndex) {
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
-        if (!BundlesBeyondClient.isModEnabled() || config.scrollAxisKeybindMode == ScrollAxisKeybindMode.VANILLA) return original;
+        if (!BundlesBeyondClient.isModEnabled() || config.scrollMode == ScrollMode.VANILLA || size <= 4) return original;
         int width = BundleTooltipAdditions.getModifiedBundleTooltipColumns(size);
         int height = BundleTooltipAdditions.getModifiedBundleTooltipRows(size, width);
-        boolean keyPressed = InputUtil.isKeyPressed(this.client.getWindow().getHandle(), ((KeyBindingAccessor) BundlesBeyondClient.scrollAxisKey).getBoundKey().getCode());
-        boolean isVertical = switch (config.scrollAxisKeybindMode) {
+        boolean keyPressed = InputUtil.isKeyPressed(this.client.getWindow().getHandle(), KeyBindingHelper.getBoundKeyOf(BundlesBeyondClient.scrollAxisKey).getCode());
+        boolean isVertical = switch (config.scrollMode) {
             case HOLD_FOR_VERTICAL -> keyPressed;
             case HOLD_FOR_HORIZONTAL -> !keyPressed;
-            case TOGGLE -> !config.scrollingToggledHorizontal;
+            case VERTICAL -> true;
+            case HORIZONTAL -> false;
             default -> throw new IllegalStateException();
         };
         if (isVertical) {

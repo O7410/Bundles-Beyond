@@ -1,9 +1,9 @@
 plugins {
-	id 'fabric-loom' version '1.10-SNAPSHOT'
+	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 }
 
-version = project.mod_version
+version = project.mod_version + "+" + project.minecraft_version
 group = project.maven_group
 
 base {
@@ -20,11 +20,6 @@ repositories {
 	maven {
 		name = "Terraformers"
 		url = "https://maven.terraformersmc.com/"
-	}
-
-	maven {
-		name = "Xander Maven"
-		url = 'https://maven.isxander.dev/releases'
 	}
 }
 
@@ -48,15 +43,20 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
 }
 
-processResources {
-	inputs.property "version", project.version
+processClientResources {
+    inputs.property "version", project.version
+    inputs.property "loader_version", project.loader_version
+    inputs.property "mc_version_range", project.mc_version_range
 
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
+    filesMatching("fabric.mod.json") {
+        expand(
+                "version": inputs.properties.version,
+                "loader_version": inputs.properties.loader_version,
+                "mc_version_range": inputs.properties.mc_version_range
+        )
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {

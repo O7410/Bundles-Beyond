@@ -1,22 +1,24 @@
 package o7410.bundlesbeyond;
 
 import com.mojang.serialization.Codec;
+import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.StringIdentifiable;
 
-public enum ScrollAxisKeybindMode implements StringIdentifiable {
+public enum ScrollMode implements StringIdentifiable {
     HOLD_FOR_VERTICAL("Hold key to scroll vertically", "hold_for_vertical", "Hold for vertical"),
     HOLD_FOR_HORIZONTAL("Hold key to scroll horizontally", "hold_for_horizontal", "Hold for horizontal"),
-    TOGGLE("Press key to toggle between scrolling horizontally and vertically", "toggle", "Toggle"),
+    HORIZONTAL("Horizontal, press key for vertical", "horizontal", "Horizontal"),
+    VERTICAL("Vertical, press key for horizontal", "vertical", "Vertical"),
     VANILLA("Vanilla scrolling", "vanilla", "Vanilla");
 
-    public static final Codec<ScrollAxisKeybindMode> CODEC = StringIdentifiable.createCodec(ScrollAxisKeybindMode::values);
+    public static final Codec<ScrollMode> CODEC = StringIdentifiable.createCodec(ScrollMode::values);
 
     public final String description;
     public final String id;
     public final String shortName;
 
-    ScrollAxisKeybindMode(String description, String id, String shortName) {
+    ScrollMode(String description, String id, String shortName) {
         this.id = id;
         this.description = description;
         this.shortName = shortName;
@@ -27,7 +29,10 @@ public enum ScrollAxisKeybindMode implements StringIdentifiable {
     }
 
     public Text getShortNameText() {
-        return Text.literal(this.shortName);
+        return Text.literal(this.shortName).styled(style -> style.withHoverEvent(
+                new HoverEvent(HoverEvent.Action.SHOW_TEXT, this.getDescriptionText()) // 1.21.3
+//                new HoverEvent.ShowText(this.getDescriptionText()) // 1.21.8
+        ));
     }
 
     @Override

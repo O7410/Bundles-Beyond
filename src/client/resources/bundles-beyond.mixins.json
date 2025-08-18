@@ -6,9 +6,9 @@
         "BundleContentsComponentMixin",
         "BundleTooltipComponentMixin",
         "BundleTooltipSubmenuHandlerMixin",
+        "ChatScreenMixin",
         "CreativeInventoryScreenMixin",
-        "HandledScreenMixin",
-        "KeyBindingAccessor"
+        "HandledScreenMixin"
     ],
     "injectors": {
         "defaultRequire": 1

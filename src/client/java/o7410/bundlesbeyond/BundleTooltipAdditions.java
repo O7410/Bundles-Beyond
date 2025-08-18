@@ -1,5 +1,6 @@
 package o7410.bundlesbeyond;
 
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -9,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.BundleItemSelectedC2SPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
-import o7410.bundlesbeyond.mixin.KeyBindingAccessor;
 import org.lwjgl.glfw.GLFW;
 
 public class BundleTooltipAdditions {
@@ -17,14 +17,14 @@ public class BundleTooltipAdditions {
     public static boolean handleKeybindsInBundleGui(ItemStack stack, int slotId, int keyCode, int scanCode) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
-        if (config.modEnabledKeyModeOnToggle && keyCode == ((KeyBindingAccessor) BundlesBeyondClient.modEnabledKey).getBoundKey().getCode()) {
-            config.modEnabledWhenOnToggle = !config.modEnabledWhenOnToggle;
-            BundlesBeyondConfig.HANDLER.save();
+        if (config.modEnabledState != ModEnabledState.HOLD_KEY && keyCode == KeyBindingHelper.getBoundKeyOf(BundlesBeyondClient.modEnabledKey).getCode()) {
+            config.modEnabledState = config.modEnabledState == ModEnabledState.ON ? ModEnabledState.OFF : ModEnabledState.ON;
+            BundlesBeyondConfig.save();
             if (player != null) {
-                player.sendMessage(Text.literal("Bundles Beyond " + (config.modEnabledWhenOnToggle ? "enabled" : "disabled")), true);
+                player.sendMessage(Text.literal("Bundles Beyond " + (config.modEnabledState == ModEnabledState.ON ? "enabled" : "disabled")), true);
             }
             int selectedIndex = BundleItem.getSelectedStackIndex(stack);
-            if (config.modEnabledWhenOnToggle) return true;
+            if (config.modEnabledState == ModEnabledState.ON) return true;
             int shownStacksWhenDisabled = BundleItem.getNumberOfStacksShown(stack);
             if (selectedIndex >= shownStacksWhenDisabled) {
                 selectedIndex = -1;
@@ -39,12 +39,12 @@ public class BundleTooltipAdditions {
 
         if (!BundlesBeyondClient.isModEnabled()) return false;
 
-        if (config.scrollAxisKeybindMode == ScrollAxisKeybindMode.TOGGLE &&
-                keyCode == ((KeyBindingAccessor) BundlesBeyondClient.scrollAxisKey).getBoundKey().getCode()) {
-            config.scrollingToggledHorizontal = !config.scrollingToggledHorizontal;
-            BundlesBeyondConfig.HANDLER.save();
+        if ((config.scrollMode == ScrollMode.HORIZONTAL || config.scrollMode == ScrollMode.VERTICAL) &&
+                keyCode == KeyBindingHelper.getBoundKeyOf(BundlesBeyondClient.scrollAxisKey).getCode()) {
+            config.scrollMode = config.scrollMode == ScrollMode.HORIZONTAL ? ScrollMode.VERTICAL : ScrollMode.HORIZONTAL;
+            BundlesBeyondConfig.save();
             if (player != null) {
-                player.sendMessage(Text.literal("Now scrolling " + (config.scrollingToggledHorizontal ? "horizontally" : "vertically")), true);
+                player.sendMessage(Text.literal("Now scrolling " + (config.scrollMode == ScrollMode.HORIZONTAL ? "horizontally" : "vertically")), true);
             }
             return true;
         }
@@ -55,10 +55,10 @@ public class BundleTooltipAdditions {
         int width = BundleTooltipAdditions.getModifiedBundleTooltipColumns(size);
         int height = BundleTooltipAdditions.getModifiedBundleTooltipRows(size, width);
         GameOptions gameOptions = MinecraftClient.getInstance().options;
-        int forwardCode = ((KeyBindingAccessor) gameOptions.forwardKey).getBoundKey().getCode();
-        int leftCode = ((KeyBindingAccessor) gameOptions.leftKey).getBoundKey().getCode();
-        int backCode = ((KeyBindingAccessor) gameOptions.backKey).getBoundKey().getCode();
-        int rightCode = ((KeyBindingAccessor) gameOptions.rightKey).getBoundKey().getCode();
+        int forwardCode = KeyBindingHelper.getBoundKeyOf(gameOptions.forwardKey).getCode();
+        int leftCode = KeyBindingHelper.getBoundKeyOf(gameOptions.leftKey).getCode();
+        int backCode = KeyBindingHelper.getBoundKeyOf(gameOptions.backKey).getCode();
+        int rightCode = KeyBindingHelper.getBoundKeyOf(gameOptions.rightKey).getCode();
         if (keyCode == forwardCode || keyCode == GLFW.GLFW_KEY_UP) {
             selectedIndex = BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, -1);
         } else if (keyCode == leftCode || keyCode == GLFW.GLFW_KEY_LEFT) {
