@@ -23,7 +23,7 @@ public abstract class CreativeInventoryScreenMixin extends HandledScreenMixin {
             if (
                     tooltipSubmenuHandler instanceof BundleTooltipSubmenuHandler &&
                             tooltipSubmenuHandler.isApplicableTo(this.focusedSlot) &&
-                            BundleTooltipAdditions.handleKeybindsInBundleGui(this.focusedSlot.getStack(), this.focusedSlot.id, keyCode, scanCode)
+                            BundleTooltipAdditions.handleKeybindsInBundleGui(this.focusedSlot, keyCode, scanCode)
             ) {
                 this.ignoreTypedCharacter = true;
                 cir.setReturnValue(true);

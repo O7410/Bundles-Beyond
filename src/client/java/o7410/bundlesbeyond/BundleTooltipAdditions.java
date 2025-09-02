@@ -2,36 +2,42 @@ package o7410.bundlesbeyond;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.item.BundleItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.BundleItemSelectedC2SPacket;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.Slot;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
+import o7410.bundlesbeyond.mixin.HandledScreenAccessor;
 import org.lwjgl.glfw.GLFW;
 
 public class BundleTooltipAdditions {
 
-    public static boolean handleKeybindsInBundleGui(ItemStack stack, int slotId, int keyCode, int scanCode) {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+    public static boolean handleKeybindsInBundleGui(Slot slot, int keyCode, int scanCode) {
+        ItemStack stack = slot.getStack();
+        MinecraftClient client = MinecraftClient.getInstance();
+        ClientPlayerEntity player = client.player;
+        if (player == null) return false;
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         if (config.modEnabledState != ModEnabledState.HOLD_KEY && keyCode == KeyBindingHelper.getBoundKeyOf(BundlesBeyondClient.modEnabledKey).getCode()) {
             config.modEnabledState = config.modEnabledState == ModEnabledState.ON ? ModEnabledState.OFF : ModEnabledState.ON;
             BundlesBeyondConfig.save();
-            if (player != null) {
-                player.sendMessage(Text.literal("Bundles Beyond " + (config.modEnabledState == ModEnabledState.ON ? "enabled" : "disabled")), true);
-            }
+            player.sendMessage(Text.literal("Bundles Beyond " + (config.modEnabledState == ModEnabledState.ON ? "enabled" : "disabled")), true);
             int selectedIndex = BundleItem.getSelectedStackIndex(stack);
             if (config.modEnabledState == ModEnabledState.ON) return true;
             int shownStacksWhenDisabled = BundleItem.getNumberOfStacksShown(stack);
             if (selectedIndex >= shownStacksWhenDisabled) {
                 selectedIndex = -1;
                 BundleItem.setSelectedStackIndex(stack, selectedIndex);
-                ClientPlayNetworkHandler clientPlayNetworkHandler = MinecraftClient.getInstance().getNetworkHandler();
+                ClientPlayNetworkHandler clientPlayNetworkHandler = client.getNetworkHandler();
                 if (clientPlayNetworkHandler != null) {
-                    clientPlayNetworkHandler.sendPacket(new BundleItemSelectedC2SPacket(slotId, selectedIndex));
+                    clientPlayNetworkHandler.sendPacket(new BundleItemSelectedC2SPacket(slot.id, selectedIndex));
                 }
             }
             return true;
@@ -43,8 +49,15 @@ public class BundleTooltipAdditions {
                 keyCode == KeyBindingHelper.getBoundKeyOf(BundlesBeyondClient.scrollAxisKey).getCode()) {
             config.scrollMode = config.scrollMode == ScrollMode.HORIZONTAL ? ScrollMode.VERTICAL : ScrollMode.HORIZONTAL;
             BundlesBeyondConfig.save();
-            if (player != null) {
-                player.sendMessage(Text.literal("Now scrolling " + (config.scrollMode == ScrollMode.HORIZONTAL ? "horizontally" : "vertically")), true);
+            player.sendMessage(Text.literal("Now scrolling " + (config.scrollMode == ScrollMode.HORIZONTAL ? "horizontally" : "vertically")), true);
+            return true;
+        }
+
+        if (keyCode == GLFW.GLFW_KEY_SPACE) {
+            if (client.currentScreen instanceof HandledScreen<?> handledScreen) {
+                ScreenHandler currentScreenHandler = player.currentScreenHandler;
+                int button = currentScreenHandler.getCursorStack().isEmpty() ? 1 : 0; // right : left
+                ((HandledScreenAccessor) handledScreen).callOnMouseClick(slot, slot.id, button, SlotActionType.PICKUP);
             }
             return true;
         }
@@ -54,7 +67,7 @@ public class BundleTooltipAdditions {
         if (size == 0) return false;
         int width = BundleTooltipAdditions.getModifiedBundleTooltipColumns(size);
         int height = BundleTooltipAdditions.getModifiedBundleTooltipRows(size, width);
-        GameOptions gameOptions = MinecraftClient.getInstance().options;
+        GameOptions gameOptions = client.options;
         int forwardCode = KeyBindingHelper.getBoundKeyOf(gameOptions.forwardKey).getCode();
         int leftCode = KeyBindingHelper.getBoundKeyOf(gameOptions.leftKey).getCode();
         int backCode = KeyBindingHelper.getBoundKeyOf(gameOptions.backKey).getCode();
@@ -73,9 +86,9 @@ public class BundleTooltipAdditions {
         if (selectedIndex == -1) return false;
 
         BundleItem.setSelectedStackIndex(stack, selectedIndex);
-        ClientPlayNetworkHandler clientPlayNetworkHandler = MinecraftClient.getInstance().getNetworkHandler();
+        ClientPlayNetworkHandler clientPlayNetworkHandler = client.getNetworkHandler();
         if (clientPlayNetworkHandler != null) {
-            clientPlayNetworkHandler.sendPacket(new BundleItemSelectedC2SPacket(slotId, selectedIndex));
+            clientPlayNetworkHandler.sendPacket(new BundleItemSelectedC2SPacket(slot.id, selectedIndex));
         }
         return true;
     }
@@ -106,6 +119,7 @@ public class BundleTooltipAdditions {
         }
 
         if (gridY == 0 && gridX < emptySlotsAtTheStart) {
+            if (height == 2) return -1;
             gridY += offset;
             if (gridY < 0) {
                 gridY += height;
@@ -123,10 +137,6 @@ public class BundleTooltipAdditions {
             return selectedIndex == 0 ? -1 : 0;
         }
 
-        if (selectedIndex == -1) {
-            selectedIndex = 0;
-        }
-
         int emptySlotsAtTheStart = width * height - size;
         int gridIndex = selectedIndex + emptySlotsAtTheStart;
         int gridX = gridIndex % width;
@@ -134,16 +144,19 @@ public class BundleTooltipAdditions {
         boolean isFirstRow = selectedIndex < (width - emptySlotsAtTheStart);
 
         int thisRowWidth = isFirstRow ? (width - emptySlotsAtTheStart) : width;
+        if (thisRowWidth == 1) {
+            return selectedIndex == 0 ? -1 : 0;
+        }
         int indexInRow = isFirstRow ? selectedIndex : gridX;
 
         indexInRow += offset;
 
         if (indexInRow < 0) {
-            indexInRow += thisRowWidth;
+            indexInRow = thisRowWidth - 1;
         }
 
         if (indexInRow >= thisRowWidth) {
-            indexInRow -= thisRowWidth;
+            indexInRow = 0;
         }
 
         gridX = isFirstRow ? indexInRow + emptySlotsAtTheStart : indexInRow;
@@ -156,6 +169,10 @@ public class BundleTooltipAdditions {
 
     public static int getModifiedBundleTooltipColumns(int size) {
         return Math.max(4, MathHelper.ceil(Math.sqrt(size)));
+    }
+
+    public static int getModifiedBundleTooltipColumnsPixels(int size) {
+        return getModifiedBundleTooltipColumns(size) * BundlesBeyondConfig.instance().slotSize;
     }
 
     public static int getModifiedBundleTooltipRows(int size, int columns) {

@@ -1,6 +1,7 @@
 package o7410.bundlesbeyond;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
@@ -30,6 +31,11 @@ public class BundlesBeyondCommand {
                                 .executes(BundlesBeyondCommand::executeSetScrollMode)
                         )
                 )
+                .then(ClientCommandManager.literal("slot_size")
+                        .executes(BundlesBeyondCommand::executeGetSlotSize)
+                        .then(ClientCommandManager.argument("size", IntegerArgumentType.integer(18))
+                                .suggests(BundlesBeyondCommand::getSlotSizeSuggestions)
+                                .executes(BundlesBeyondCommand::executeSetSlotSize)))
                 .then(ClientCommandManager.literal("reloadconfig").executes(BundlesBeyondCommand::executeReloadConfig))
         );
     }
@@ -80,11 +86,35 @@ public class BundlesBeyondCommand {
     }
 
     private static int executeSetScrollMode(CommandContext<FabricClientCommandSource> context) {
-        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         ScrollMode newMode = context.getArgument("mode", ScrollMode.class);
         context.getSource().sendFeedback(Text.literal("Scroll mode is now: ").append(newMode.getShortNameText()));
+        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         if (config.scrollMode != newMode) {
             config.scrollMode = newMode;
+            if (!BundlesBeyondConfig.save()) {
+                context.getSource().sendError(Text.literal("Failed to save Bundles Beyond config"));
+            }
+        }
+        return 0;
+    }
+
+    private static int executeGetSlotSize(CommandContext<FabricClientCommandSource> context) {
+        int slotSize = BundlesBeyondConfig.instance().slotSize;
+        context.getSource().sendFeedback(Text.literal("Slot size is currently: " + slotSize + (slotSize == 24 ? " (Vanilla)" : "")));
+        return 0;
+    }
+
+    private static CompletableFuture<Suggestions> getSlotSizeSuggestions(CommandContext<FabricClientCommandSource> context, SuggestionsBuilder builder) {
+        builder.suggest(24);
+        return builder.buildFuture();
+    }
+
+    private static int executeSetSlotSize(CommandContext<FabricClientCommandSource> context) {
+        int slotSize = IntegerArgumentType.getInteger(context, "size");
+        context.getSource().sendFeedback(Text.literal("Slot size is now: " + slotSize + (slotSize == 24 ? " (Vanilla)" : "")));
+        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
+        if (config.slotSize != slotSize) {
+            config.slotSize = slotSize;
             if (!BundlesBeyondConfig.save()) {
                 context.getSource().sendError(Text.literal("Failed to save Bundles Beyond config"));
             }

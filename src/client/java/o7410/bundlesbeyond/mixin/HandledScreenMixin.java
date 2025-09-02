@@ -31,7 +31,7 @@ public abstract class HandledScreenMixin {
             if (
                     tooltipSubmenuHandler instanceof BundleTooltipSubmenuHandler &&
                     tooltipSubmenuHandler.isApplicableTo(this.focusedSlot) &&
-                    BundleTooltipAdditions.handleKeybindsInBundleGui(this.focusedSlot.getStack(), this.focusedSlot.id, keyCode, scanCode)
+                    BundleTooltipAdditions.handleKeybindsInBundleGui(this.focusedSlot, keyCode, scanCode)
             ) {
                 cir.setReturnValue(true);
             }

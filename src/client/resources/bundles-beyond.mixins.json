@@ -1,16 +1,19 @@
 {
-    "required": true,
-    "package": "o7410.bundlesbeyond.mixin",
-    "compatibilityLevel": "JAVA_21",
-    "client": [
-        "BundleContentsComponentMixin",
-        "BundleTooltipComponentMixin",
-        "BundleTooltipSubmenuHandlerMixin",
-        "ChatScreenMixin",
-        "CreativeInventoryScreenMixin",
-        "HandledScreenMixin"
-    ],
-    "injectors": {
-        "defaultRequire": 1
+	"required": true,
+	"package": "o7410.bundlesbeyond.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"BundleContentsComponentMixin",
+		"BundleTooltipComponentMixin",
+		"BundleTooltipSubmenuHandlerMixin",
+		"ChatScreenMixin",
+		"CreativeInventoryScreenMixin",
+		"HandledScreenAccessor",
+		"HandledScreenMixin",
+		"SliderWidgetAccessor",
+		"BundleItemMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
 	}
 }

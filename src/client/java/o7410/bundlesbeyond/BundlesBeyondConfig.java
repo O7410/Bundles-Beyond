@@ -1,8 +1,10 @@
 package o7410.bundlesbeyond;
 
 import com.google.gson.*;
-import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.BufferedReader;
@@ -10,12 +12,12 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
+import java.util.function.Function;
 
 public class BundlesBeyondConfig {
     private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("bundles_beyond.json");
     private static final Gson GSON = new GsonBuilder()
-//            .setStrictness(Strictness.STRICT) // 1.21.8
+//            .setStrictness(Strictness.STRICT) // 1.21.4+
             .setPrettyPrinting()
             .create();
 
@@ -23,6 +25,7 @@ public class BundlesBeyondConfig {
 
     public ScrollMode scrollMode = ScrollMode.VANILLA;
     public ModEnabledState modEnabledState = ModEnabledState.ON;
+    public int slotSize = 24;
 
     public static BundlesBeyondConfig instance() {
         return instance;
@@ -61,7 +64,11 @@ public class BundlesBeyondConfig {
                     BundlesBeyondClient.LOGGER.info("Migrating old config");
                     migrateOldConfig(rawConfig);
                 }
-                fromJson(rawConfig);
+                BundlesBeyondConfig config = fromJson(rawConfig);
+                if (config == null) {
+                    return false;
+                }
+                instance = config;
                 return true;
             } catch (IOException | JsonIOException e) {
                 BundlesBeyondClient.LOGGER.error("Error reading config from file: {}", e.toString());
@@ -73,38 +80,30 @@ public class BundlesBeyondConfig {
         }
     }
 
-    private static void fromJson(JsonObject jsonObject) {
-        boolean resave = false;
+    private static final Codec<Integer> BUNDLE_SLOT_SIZE_CODEC = Codec.INT.comapFlatMap(
+            integer -> integer >= 18 && integer <= 24 ?
+                    DataResult.success(integer) :
+                    DataResult.error(() -> "slotSize must be between 18 and 24, found " + integer),
+            Function.identity()
+    );
+    private static final Codec<BundlesBeyondConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ScrollMode.CODEC.fieldOf("scrollMode").forGetter(config -> config.scrollMode),
+            ModEnabledState.CODEC.fieldOf("modEnabledState").forGetter(config -> config.modEnabledState),
+            BUNDLE_SLOT_SIZE_CODEC.fieldOf("slotSize").forGetter(config -> config.slotSize)
+    ).apply(instance, (scrollMode, modEnabledState, slotSize) -> {
+        BundlesBeyondConfig config = new BundlesBeyondConfig();
+        config.scrollMode = scrollMode;
+        config.modEnabledState = modEnabledState;
+        config.slotSize = slotSize;
+        return config;
+    }));
 
-        Optional<ScrollMode> scrollModeResult = ScrollMode.CODEC.decode(
-                JsonOps.INSTANCE, jsonObject.remove("scrollMode")
-        ).map(Pair::getFirst).result();
-        if (scrollModeResult.isPresent()) {
-            instance.scrollMode = scrollModeResult.get();
-        } else {
-            resave = true;
-        }
-
-        Optional<ModEnabledState> modEnabledStateResult = ModEnabledState.CODEC.decode(
-                JsonOps.INSTANCE, jsonObject.remove("modEnabledState")
-        ).map(Pair::getFirst).result();
-        if (modEnabledStateResult.isPresent()) {
-            instance.modEnabledState = modEnabledStateResult.get();
-        } else {
-            resave = true;
-        }
-
-        resave = resave || !jsonObject.entrySet().isEmpty();
-        if (resave) {
-            save();
-        }
+    private static BundlesBeyondConfig fromJson(JsonObject jsonObject) {
+        return CODEC.parse(JsonOps.INSTANCE, jsonObject).resultOrPartial(BundlesBeyondClient.LOGGER::error).orElse(null);
     }
 
     private static JsonObject toJson() {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("scrollMode", instance.scrollMode.toString());
-        jsonObject.addProperty("modEnabledState", instance.modEnabledState.toString());
-        return jsonObject;
+        return CODEC.encodeStart(JsonOps.INSTANCE, instance).getOrThrow().getAsJsonObject();
     }
 
     private static void migrateOldConfig(JsonObject config) {
