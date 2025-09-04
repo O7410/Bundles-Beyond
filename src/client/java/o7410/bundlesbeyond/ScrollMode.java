@@ -30,8 +30,11 @@ public enum ScrollMode implements StringIdentifiable {
 
     public Text getShortNameText() {
         return Text.literal(this.shortName).styled(style -> style.withHoverEvent(
-                new HoverEvent(HoverEvent.Action.SHOW_TEXT, this.getDescriptionText()) // 1.21.3
-//                new HoverEvent.ShowText(this.getDescriptionText()) // 1.21.8
+                //? if <1.21.8 {
+                new HoverEvent(HoverEvent.Action.SHOW_TEXT, this.getDescriptionText())
+                //?} else {
+                /*new HoverEvent.ShowText(this.getDescriptionText())
+                *///?}
         ));
     }
 

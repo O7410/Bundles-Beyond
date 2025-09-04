@@ -17,7 +17,8 @@ import java.util.function.Function;
 public class BundlesBeyondConfig {
     private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("bundles_beyond.json");
     private static final Gson GSON = new GsonBuilder()
-//            .setStrictness(Strictness.STRICT) // 1.21.4+
+            //? if >=1.21.4
+            /*.setStrictness(Strictness.STRICT)*/
             .setPrettyPrinting()
             .create();
 

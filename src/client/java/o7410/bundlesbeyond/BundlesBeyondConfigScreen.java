@@ -1,7 +1,10 @@
 package o7410.bundlesbeyond;
 
-//import net.minecraft.client.gl.RenderPipelines; // 1.21.8
-import net.minecraft.client.render.RenderLayer; // 1.21.3
+//? if =1.21.8 {
+/*import net.minecraft.client.gl.RenderPipelines;
+*///?} else {
+import net.minecraft.client.render.RenderLayer;
+//?}
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
@@ -40,8 +43,11 @@ public class BundlesBeyondConfigScreen extends Screen {
         super.renderBackground(context, mouseX, mouseY, delta);
 
         context.drawTexture(
-                RenderLayer::getGuiTextured, // 1.21.3
-//                RenderPipelines.GUI_TEXTURED, // 1.21.8
+                //? if =1.21.8 {
+                /*RenderPipelines.GUI_TEXTURED,
+                *///?} else {
+                RenderLayer::getGuiTextured,
+                //?}
                 TEXTURE,
                 (this.width - BACKGROUND_WIDTH) / 2,
                 (this.height - BACKGROUND_HEIGHT) / 2,
