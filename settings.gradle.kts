@@ -3,7 +3,8 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
         maven("https://maven.fabricmc.net/")
-        maven("https://maven.kikugie.dev/snapshots") { name = "KikuGie Snapshots" }
+        maven("https://maven.minecraftforge.net")
+        maven("https://maven.architectury.dev")
     }
 }
 
@@ -11,9 +12,12 @@ plugins {
     id("dev.kikugie.stonecutter") version "0.7.10"
 }
 
+val versions = listOf("1.21.3", "1.21.4", "1.21.8")
+val loaders = listOf("fabric", "neoforge")
+
 stonecutter {
     create(rootProject) {
-        versions("1.21.3", "1.21.4", "1.21.8")
-        vcsVersion = "1.21.3"
+        loaders.forEach { loader -> versions.forEach { version -> version("$version-$loader", version) } }
+        vcsVersion = "1.21.3-fabric"
     }
 }

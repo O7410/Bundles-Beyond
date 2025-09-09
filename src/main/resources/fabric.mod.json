@@ -1,0 +1,48 @@
+{
+	"schemaVersion": 1,
+	"id": "${mod_id}",
+	"version": "${version}+${mc_ver}+${loader_name}",
+	"name": "${name}",
+	"description": "${description}",
+	"authors": [
+		"${authors}"
+	],
+	"contact": {
+		"homepage": "${website}",
+		"sources": "${source_url}",
+		"issues": "${issue_tracker}"
+	},
+	"license": "${license}",
+	"icon": "${icon}",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"o7410.bundlesbeyond.BundlesBeyond"
+		],
+		"modmenu": [
+			"o7410.bundlesbeyond.BundlesBeyondModMenuApi"
+		]
+	},
+	"mixins": [
+		{
+			"config": "${mixins_file}",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": "${loader_range}",
+		"minecraft": "${mc_range}",
+		"fabric-api": "${fabric_api_range}",
+        "java": ">=21"
+	},
+	"suggests": {
+		"modmenu": "*"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.modrinth": "https://modrinth.com/mod/bundles-beyond"
+			}
+		}
+	}
+}
