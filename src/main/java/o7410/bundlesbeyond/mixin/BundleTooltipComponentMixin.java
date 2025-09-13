@@ -113,8 +113,8 @@ public abstract class BundleTooltipComponentMixin {
         }
         instance.getMatrices()
                 //? if =1.21.8 {
-                /*.pushMatrix();*/
-                //?} else {
+                /*.pushMatrix();
+                *///?} else {
                 .push();
                 //?}
         float offset = BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(this.bundleContents.size()) / 2f;
@@ -122,8 +122,8 @@ public abstract class BundleTooltipComponentMixin {
         original.call(instance, textRenderer, text, centerX, y, color);
         instance.getMatrices()
                 //? if =1.21.8 {
-                /*.popMatrix();*/
-                //?} else {
+                /*.popMatrix();
+                *///?} else {
                 .pop();
                 //?}
     }
@@ -157,16 +157,19 @@ public abstract class BundleTooltipComponentMixin {
             return;
         }
         instance.getMatrices()
-                /^? if =1.21.8 {^//^.pushMatrix();
-                ^//^?} else^/.push();
+                //? if =1.21.8 {
+                /^.pushMatrix();
+                ^///?} else {
+                .push();
+                 //?}
         float offset = (BundlesBeyondConfig.instance().slotSize - 24) / 2f;
         instance.getMatrices().translate(offset, offset/^? <1.21.8 {^/, 0/^?}^/);
         original.call(instance, /^? if =1.21.4 {^//^renderLayers^//^?} else {^/pipeline/^?}^/, sprite, x, y, width, height);
         instance.getMatrices()
                 //? if =1.21.8 {
-                /^.pushMatrix();^/
-                //?} else {
-                .push();
+                /^.popMatrix();
+                ^///?} else {
+                .pop();
                 //?}
     }
     *///?}
@@ -176,8 +179,8 @@ public abstract class BundleTooltipComponentMixin {
         if (!BundlesBeyond.isModEnabled()) return;
         drawContext.getMatrices()
                 //? if =1.21.8 {
-                /*.pushMatrix();*/
-                //?} else {
+                /*.pushMatrix();
+                *///?} else {
                 .push();
                 //?}
         float offset = (BundlesBeyondConfig.instance().slotSize - 16) / 2f;
@@ -198,8 +201,8 @@ public abstract class BundleTooltipComponentMixin {
         if (!BundlesBeyond.isModEnabled()) return;
         drawContext.getMatrices()
                 //? if =1.21.8 {
-                /*.popMatrix();*/
-                //?} else {
+                /*.popMatrix();
+                *///?} else {
                 .pop();
                 //?}
     }
