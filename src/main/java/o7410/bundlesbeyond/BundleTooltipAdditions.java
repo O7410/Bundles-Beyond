@@ -16,7 +16,7 @@ import org.lwjgl.glfw.GLFW;
 
 public class BundleTooltipAdditions {
 
-    public static boolean handleKeybindsInBundleGui(Slot slot, int keyCode, int scanCode) {
+    public static boolean handleKeybindsInBundleGui(Slot slot, int keyCode) {
         ItemStack stack = slot.getStack();
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerEntity player = client.player;

@@ -50,12 +50,10 @@ fun versionProperty(key: String): VersionRange {
             list[i] = ""
         }
     }
-    return if (list.isEmpty()) {
-        VersionRange("", "")
-    } else if (list.size == 1) {
-        VersionRange(list[0], "")
-    } else {
-        VersionRange(list[0], list[1])
+    return when (list.size) {
+        0 -> VersionRange("", "")
+        1 -> VersionRange(list[0], "")
+        else -> VersionRange(list[0], list[1])
     }
 }
 
@@ -76,7 +74,7 @@ sealed class Env {
 class EnvFabric : Env() {
     val fabricLoaderVersion = versionProperty("deps.core.fabric")
     val fabricApiVersion = versionProperty("deps.api.fabric_api")
-    val modmenuVersion = versionProperty("deps.api.modmenu")
+    val modmenuVersion = if (hasProperty("deps.api.modmenu")) versionProperty("deps.api.modmenu") else null
 }
 
 class EnvNeo : Env() {
@@ -139,7 +137,7 @@ dependencies {
         mappings("net.fabricmc:yarn:${env.yarnMappings}:v2")
 
         modImplementation("net.fabricmc.fabric-api:fabric-api:${env.fabricApiVersion.min}")
-        modImplementation("com.terraformersmc:modmenu:${env.modmenuVersion.min}")
+        env.modmenuVersion?.let { modImplementation("com.terraformersmc:modmenu:${it.min}") }
     }
     if (env is EnvNeo) {
         "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion.min}")

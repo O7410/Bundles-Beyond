@@ -20,6 +20,10 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 *///?}
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.util.Identifier;
+//? if <1.21.9 {
+import net.minecraft.util.Util;
+//?}
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +38,23 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     public static final String MOD_ID = "bundlesbeyond";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+    //? if <1.21.9 {
+    public static final String KEY_CATEGORY = Util.createTranslationKey("category", Identifier.of(MOD_ID, "bundles_beyond"));
+    //?} else if fabric {
+    /*public static final KeyBinding.Category KEY_CATEGORY = KeyBinding.Category.create(Identifier.of(MOD_ID, "bundles_beyond"));
+    *///?} else if neoforge {
+    /*public static final KeyBinding.Category KEY_CATEGORY = new KeyBinding.Category(Identifier.of(MOD_ID, "bundles_beyond"));
+    *///?}
+
     public static final KeyBinding SCROLL_AXIS_KEY = new KeyBinding(
             "key." + MOD_ID + ".scroll_axis",
             InputUtil.UNKNOWN_KEY.getCode(),
-            "category." + MOD_ID + ".bundles_beyond"
+            KEY_CATEGORY
     );
     public static final KeyBinding MOD_ENABLED_KEY = new KeyBinding(
             "key." + MOD_ID + ".mod_enabled",
             InputUtil.UNKNOWN_KEY.getCode(),
-            "category." + MOD_ID + ".bundles_beyond"
+            KEY_CATEGORY
     );
 
     public static boolean isModEnabled() {
@@ -75,6 +87,9 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     //? if neoforge {
     /*@SubscribeEvent
     private static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+        //? if >=1.21.9 {
+        /^event.registerCategory(KEY_CATEGORY);
+        ^///?}
         registerKeybinds(event::register);
     }
     *///?}

@@ -21,7 +21,7 @@ public abstract class BundleItemMixin {
             @Local BundleContentsComponent.Builder builder,
             @Local BundleContentsComponent bundleContentsComponent
     ) {
-        if (!player.getWorld().isClient || !BundlesBeyond.isModEnabled()) return;
+        if (!player.getEntityWorld().isClient() || !BundlesBeyond.isModEnabled()) return;
         if (!bundleContentsComponent.hasSelectedStack()) return;
         int selectedIndex = bundleContentsComponent.getSelectedStackIndex() + 1;
         builder.setSelectedStackIndex(selectedIndex);

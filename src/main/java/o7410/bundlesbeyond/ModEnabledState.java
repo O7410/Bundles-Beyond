@@ -13,7 +13,7 @@ public enum ModEnabledState implements StringIdentifiable {
     ON("On, press key to toggle", "on", "On", () -> true),
     OFF("Off, press key to toggle", "off", "Off", () -> false),
     HOLD_KEY("Hold key to enable", "hold_key", "Hold key", () -> InputUtil.isKeyPressed(
-            MinecraftClient.getInstance().getWindow().getHandle(),
+            MinecraftClient.getInstance().getWindow()/*? if <1.21.9 {*/.getHandle()/*?}*/,
             BundlesBeyond.getKeyCode(BundlesBeyond.MOD_ENABLED_KEY)
     ));
 
