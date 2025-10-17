@@ -3,7 +3,7 @@ package o7410.bundlesbeyond.mixin;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.tooltip.BundleTooltipSubmenuHandler;
 import net.minecraft.client.gui.tooltip.TooltipSubmenuHandler;
-//? if >=1.21.9 {
+//? if >=1.21.10 {
 /*import net.minecraft.client.input.KeyInput;
 *///?}
 import net.minecraft.screen.slot.Slot;
@@ -25,7 +25,7 @@ public abstract class HandledScreenMixin {
 
     @Shadow @Final private List<TooltipSubmenuHandler> tooltipSubmenuHandlers;
 
-    //? if <1.21.9 {
+    //? if <1.21.10 {
     @Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;handleHotbarKeyPressed(II)Z"), cancellable = true)
     private void bundleSubmenuKeyHandling(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
     //?} else {

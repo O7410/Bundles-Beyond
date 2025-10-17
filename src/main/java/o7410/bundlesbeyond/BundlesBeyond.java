@@ -21,7 +21,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.Identifier;
-//? if <1.21.9 {
+//? if <1.21.10 {
 import net.minecraft.util.Util;
 //?}
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     public static final String MOD_ID = "bundlesbeyond";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    //? if <1.21.9 {
+    //? if <1.21.10 {
     public static final String KEY_CATEGORY = Util.createTranslationKey("category", Identifier.of(MOD_ID, "bundles_beyond"));
     //?} else if fabric {
     /*public static final KeyBinding.Category KEY_CATEGORY = KeyBinding.Category.create(Identifier.of(MOD_ID, "bundles_beyond"));
@@ -87,7 +87,7 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     //? if neoforge {
     /*@SubscribeEvent
     private static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
-        //? if >=1.21.9 {
+        //? if >=1.21.10 {
         /^event.registerCategory(KEY_CATEGORY);
         ^///?}
         registerKeybinds(event::register);

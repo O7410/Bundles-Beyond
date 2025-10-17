@@ -3,7 +3,7 @@ package o7410.bundlesbeyond.mixin;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.gui.tooltip.BundleTooltipSubmenuHandler;
 import net.minecraft.client.gui.tooltip.TooltipSubmenuHandler;
-//? if >=1.21.9 {
+//? if >=1.21.10 {
 /*import net.minecraft.client.input.KeyInput;
 *///?}
 import o7410.bundlesbeyond.BundleTooltipAdditions;
@@ -18,7 +18,7 @@ public abstract class CreativeInventoryScreenMixin extends HandledScreenMixin {
     @Shadow private boolean ignoreTypedCharacter;
 
     @Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/CreativeInventoryScreen;isCreativeInventorySlot(Lnet/minecraft/screen/slot/Slot;)Z"), cancellable = true)
-    //? if <1.21.9 {
+    //? if <1.21.10 {
     private void bundleSubmenuKeyHandling(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
     //?} else {
     /*private void bundleSubmenuKeyHandling(KeyInput input, CallbackInfoReturnable<Boolean> cir) {

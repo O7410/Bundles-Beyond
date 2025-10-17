@@ -21,7 +21,7 @@ public abstract class BundleItemMixin {
             @Local BundleContentsComponent.Builder builder,
             @Local BundleContentsComponent bundleContentsComponent
     ) {
-        //? if <1.21.9 {
+        //? if <1.21.10 {
         if (!player.getWorld().isClient()) return;
         //?} else {
         /*if (!player.getEntityWorld().isClient()) return;
