@@ -22,10 +22,10 @@ public abstract class BundleItemMixin {
             @Local BundleContentsComponent bundleContentsComponent
     ) {
         //? if <1.21.10 {
-        if (!player.getWorld().isClient()) return;
-        //?} else {
-        /*if (!player.getEntityWorld().isClient()) return;
-        *///?}
+        /*if (!player.getWorld().isClient()) return;
+        *///?} else {
+        if (!player.getEntityWorld().isClient()) return;
+        //?}
         if (!BundlesBeyond.isModEnabled()) return;
         if (!bundleContentsComponent.hasSelectedStack()) return;
         int selectedIndex = bundleContentsComponent.getSelectedStackIndex() + 1;

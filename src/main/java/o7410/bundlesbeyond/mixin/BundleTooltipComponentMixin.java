@@ -1,13 +1,13 @@
 package o7410.bundlesbeyond.mixin;
 
 //? if >=1.21.8
-/*import com.mojang.blaze3d.pipeline.RenderPipeline;*/
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 //? if =1.21.4 {
 /*import net.minecraft.client.render.RenderLayer;
 import java.util.function.Function;
 *///?}
 //? if >=1.21.4
-/*import net.minecraft.util.Identifier;*/
+import net.minecraft.util.Identifier;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -113,19 +113,19 @@ public abstract class BundleTooltipComponentMixin {
         }
         instance.getMatrices()
                 //? if >=1.21.8 {
-                /*.pushMatrix();
-                *///?} else {
-                .push();
-                //?}
+                .pushMatrix();
+                //?} else {
+                /*.push();
+                *///?}
         float offset = BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(this.bundleContents.size()) / 2f;
-        instance.getMatrices().translate(offset, 0/*? if <1.21.8 {*/, 0/*?}*/);
+        instance.getMatrices().translate(offset, 0/*? if <1.21.8 {*//*, 0*//*?}*/);
         original.call(instance, textRenderer, text, centerX, y, color);
         instance.getMatrices()
                 //? if >=1.21.8 {
-                /*.popMatrix();
-                *///?} else {
-                .pop();
-                //?}
+                .popMatrix();
+                //?} else {
+                /*.pop();
+                *///?}
     }
 
     @ModifyConstant(method = "getRowsHeight", constant = @Constant(intValue = 24))
@@ -134,57 +134,57 @@ public abstract class BundleTooltipComponentMixin {
         return BundlesBeyondConfig.instance().slotSize;
     }
     //? if =1.21.3 {
-    @ModifyConstant(method = "drawItem", constant = @Constant(intValue = 24))
+    /*@ModifyConstant(method = "drawItem", constant = @Constant(intValue = 24))
     private int modifySlotTextureSize(int constant) {
         if (!BundlesBeyond.isModEnabled()) return constant;
         return BundlesBeyondConfig.instance().slotSize;
     }
-    //?}
+    *///?}
 
     //? if >=1.21.8 {
-    /*@WrapOperation(method = "drawItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIII)V"))
-    *///?}
+    @WrapOperation(method = "drawItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIII)V"))
+    //?}
     //? if =1.21.4 {
     /*@WrapOperation(method = "drawItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Ljava/util/function/Function;Lnet/minecraft/util/Identifier;IIII)V"))
     *///?}
     //? if >=1.21.4 {
-    /*private void fractionalSlotOffset(DrawContext instance,
-                                      /^? if >=1.21.8 {^//^RenderPipeline pipeline,
-                                      ^//^?} else {^/Function<Identifier, RenderLayer> renderLayers,/^?}^/
+    private void fractionalSlotOffset(DrawContext instance,
+                                      /*? if >=1.21.8 {*/RenderPipeline pipeline,
+                                      /*?} else {*//*Function<Identifier, RenderLayer> renderLayers,*//*?}*/
                                       Identifier sprite, int x, int y, int width, int height, Operation<Void> original) {
         if (!BundlesBeyond.isModEnabled()) {
-            original.call(instance, /^? if =1.21.4 {^//^renderLayers^//^?} else {^/pipeline/^?}^/, sprite, x, y, width, height);
+            original.call(instance, /*? if =1.21.4 {*//*renderLayers*//*?} else {*/pipeline/*?}*/, sprite, x, y, width, height);
             return;
         }
         instance.getMatrices()
                 //? if >=1.21.8 {
-                /^.pushMatrix();
-                ^///?} else {
-                .push();
-                 //?}
+                .pushMatrix();
+                //?} else {
+                /*.push();
+                 *///?}
         float offset = (BundlesBeyondConfig.instance().slotSize - 24) / 2f;
-        instance.getMatrices().translate(offset, offset/^? if <1.21.8 {^/, 0/^?}^/);
-        original.call(instance, /^? if =1.21.4 {^//^renderLayers^//^?} else {^/pipeline/^?}^/, sprite, x, y, width, height);
+        instance.getMatrices().translate(offset, offset/*? if <1.21.8 {*//*, 0*//*?}*/);
+        original.call(instance, /*? if =1.21.4 {*//*renderLayers*//*?} else {*/pipeline/*?}*/, sprite, x, y, width, height);
         instance.getMatrices()
                 //? if >=1.21.8 {
-                /^.popMatrix();
-                ^///?} else {
-                .pop();
-                //?}
+                .popMatrix();
+                //?} else {
+                /*.pop();
+                *///?}
     }
-    *///?}
+    //?}
 
     @Inject(method = "drawItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawItem(Lnet/minecraft/item/ItemStack;III)V"))
     private void fractionalItemOffset(CallbackInfo ci, @Local(argsOnly = true) DrawContext drawContext) {
         if (!BundlesBeyond.isModEnabled()) return;
         drawContext.getMatrices()
                 //? if >=1.21.8 {
-                /*.pushMatrix();
-                *///?} else {
-                .push();
-                //?}
+                .pushMatrix();
+                //?} else {
+                /*.push();
+                *///?}
         float offset = (BundlesBeyondConfig.instance().slotSize - 16) / 2f;
-        drawContext.getMatrices().translate(offset, offset/*? if <1.21.8 {*/, 0/*?}*/);
+        drawContext.getMatrices().translate(offset, offset/*? if <1.21.8 {*//*, 0*//*?}*/);
     }
 
     @ModifyConstant(method = "drawItem", constant = @Constant(intValue = 4))
@@ -201,9 +201,9 @@ public abstract class BundleTooltipComponentMixin {
         if (!BundlesBeyond.isModEnabled()) return;
         drawContext.getMatrices()
                 //? if >=1.21.8 {
-                /*.popMatrix();
-                *///?} else {
-                .pop();
-                //?}
+                .popMatrix();
+                //?} else {
+                /*.pop();
+                *///?}
     }
 }

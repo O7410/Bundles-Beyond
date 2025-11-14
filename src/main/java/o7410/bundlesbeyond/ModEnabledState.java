@@ -13,7 +13,7 @@ public enum ModEnabledState implements StringIdentifiable {
     ON("On, press key to toggle", "on", "On", () -> true),
     OFF("Off, press key to toggle", "off", "Off", () -> false),
     HOLD_KEY("Hold key to enable", "hold_key", "Hold key", () -> InputUtil.isKeyPressed(
-            MinecraftClient.getInstance().getWindow()/*? if <1.21.10 {*/.getHandle()/*?}*/,
+            MinecraftClient.getInstance().getWindow()/*? if <1.21.10 {*//*.getHandle()*//*?}*/,
             BundlesBeyond.getKeyCode(BundlesBeyond.MOD_ENABLED_KEY)
     ));
 
@@ -42,10 +42,10 @@ public enum ModEnabledState implements StringIdentifiable {
     public Text getShortNameText() {
         return Text.literal(this.shortName).styled(style -> style.withHoverEvent(
                 //? if <1.21.8 {
-                new HoverEvent(HoverEvent.Action.SHOW_TEXT, this.getDescriptionText())
-                //?} else {
-                /*new HoverEvent.ShowText(this.getDescriptionText())
-                 *///?}
+                /*new HoverEvent(HoverEvent.Action.SHOW_TEXT, this.getDescriptionText())
+                *///?} else {
+                new HoverEvent.ShowText(this.getDescriptionText())
+                 //?}
         ));
     }
 

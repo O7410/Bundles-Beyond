@@ -1,10 +1,10 @@
 package o7410.bundlesbeyond;
 
 //? if >=1.21.8 {
-/*import net.minecraft.client.gl.RenderPipelines;
-*///?} else {
-import net.minecraft.client.render.RenderLayer;
-//?}
+import net.minecraft.client.gl.RenderPipelines;
+//?} else {
+/*import net.minecraft.client.render.RenderLayer;
+*///?}
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
@@ -12,10 +12,10 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextWidget;
 //? if <1.21.10 {
-import net.minecraft.client.input.KeyCodes;
-//?} else {
-/*import net.minecraft.client.input.KeyInput;
-*///?}
+/*import net.minecraft.client.input.KeyCodes;
+*///?} else {
+import net.minecraft.client.input.KeyInput;
+//?}
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -48,10 +48,10 @@ public class BundlesBeyondConfigScreen extends Screen {
 
         context.drawTexture(
                 //? if >=1.21.8 {
-                /*RenderPipelines.GUI_TEXTURED,
-                *///?} else {
-                RenderLayer::getGuiTextured,
-                //?}
+                RenderPipelines.GUI_TEXTURED,
+                //?} else {
+                /*RenderLayer::getGuiTextured,
+                *///?}
                 TEXTURE,
                 (this.width - BACKGROUND_WIDTH) / 2,
                 (this.height - BACKGROUND_HEIGHT) / 2,
@@ -273,17 +273,17 @@ public class BundlesBeyondConfigScreen extends Screen {
 
         @Override
         //? if <1.21.10 {
-        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        //?} else {
-        /*public boolean keyPressed(KeyInput input) {
+        /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        *///?} else {
+        public boolean keyPressed(KeyInput input) {
             int keyCode = input.key();
-        *///?}
+        //?}
             SliderWidgetAccessor self = (SliderWidgetAccessor) this;
             //? if <1.21.10 {
-            if (KeyCodes.isToggle(keyCode)) {
-            //?} else {
-            /*if (input.isEnterOrSpace()) {
-            *///?}
+            /*if (KeyCodes.isToggle(keyCode)) {
+            *///?} else {
+            if (input.isEnterOrSpace()) {
+            //?}
                 self.setSliderFocused(!self.getSliderFocused());
                 return true;
             }

@@ -22,8 +22,8 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.Identifier;
 //? if <1.21.10 {
-import net.minecraft.util.Util;
-//?}
+/*import net.minecraft.util.Util;
+*///?}
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,10 +39,10 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     //? if <1.21.10 {
-    public static final String KEY_CATEGORY = Util.createTranslationKey("category", Identifier.of(MOD_ID, "bundles_beyond"));
-    //?} else if fabric {
-    /*public static final KeyBinding.Category KEY_CATEGORY = KeyBinding.Category.create(Identifier.of(MOD_ID, "bundles_beyond"));
-    *///?} else if neoforge {
+    /*public static final String KEY_CATEGORY = Util.createTranslationKey("category", Identifier.of(MOD_ID, "bundles_beyond"));
+    *///?} else if fabric {
+    public static final KeyBinding.Category KEY_CATEGORY = KeyBinding.Category.create(Identifier.of(MOD_ID, "bundles_beyond"));
+    //?} else if neoforge {
     /*public static final KeyBinding.Category KEY_CATEGORY = new KeyBinding.Category(Identifier.of(MOD_ID, "bundles_beyond"));
     *///?}
 

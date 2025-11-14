@@ -10,8 +10,8 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.navigation.GuiNavigationType;
 //? if >=1.21.10 {
-/*import net.minecraft.client.gui.screen.ChatScreen;
-*///?}
+import net.minecraft.client.gui.screen.ChatScreen;
+//?}
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EnumArgumentType;
@@ -77,10 +77,10 @@ public class BundlesBeyondCommand {
     private static int configScreen(CommandContext<? extends CommandSource> context) {
         MinecraftClient client = MinecraftClient.getInstance();
         //? if >=1.21.10 {
-        /*if (client.currentScreen instanceof ChatScreen chatScreen) {
+        if (client.currentScreen instanceof ChatScreen chatScreen) {
             chatScreen.insertText("", true);
         }
-        *///?}
+        //?}
         client.setNavigationType(GuiNavigationType.NONE);
         client.setScreen(new BundlesBeyondConfigScreen(null));
         return 0;

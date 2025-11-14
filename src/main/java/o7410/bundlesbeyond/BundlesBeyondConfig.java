@@ -29,7 +29,7 @@ public class BundlesBeyondConfig {
             .resolve("bundles_beyond.json");
     private static final Gson GSON = new GsonBuilder()
             //? if >=1.21.4
-            /*.setStrictness(Strictness.STRICT)*/
+            .setStrictness(Strictness.STRICT)
             .setPrettyPrinting()
             .create();
 

@@ -18,6 +18,6 @@ val loaders = listOf("fabric", "neoforge")
 stonecutter {
     create(rootProject) {
         loaders.forEach { loader -> versions.forEach { version -> version("$version-$loader", version) } }
-        vcsVersion = "1.21.3-fabric"
+        vcsVersion = "1.21.10-fabric"
     }
 }
