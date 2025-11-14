@@ -1,6 +1,7 @@
 plugins {
     `maven-publish`
     id("dev.architectury.loom")
+    id("me.modmuss50.mod-publish-plugin") version "1.1.0"
 }
 
 repositories {
@@ -147,7 +148,7 @@ dependencies {
         })
     }
 
-    vineflowerDecompilerClasspath("org.vineflower:vineflower:1.11.1")
+    vineflowerDecompilerClasspath("org.vineflower:vineflower:1.11.2")
 }
 
 java {
@@ -195,5 +196,37 @@ tasks.processResources {
     }
     filesMatching("fabric.mod.json") { expand(map) }
     filesMatching("META-INF/neoforge.mods.toml") { expand(map) }
-    filesMatching("${mod.id}.mixins.json") { expand(map) }
+}
+
+publishMods {
+    changelog = """
+        hmmm I haven't checked my mod in a while- WAIT WHAT<br>
+        Thank you so much for 100K downloads ♥️<br>
+        This is a small release that adds a feature that was suggested on the github [here](https://github.com/O7410/Bundles-Beyond/issues/3#issuecomment-3528217363)<br>
+        The progress bar now shows a fraction of the capacity out of 64<br>
+        ![](https://cdn.modrinth.com/data/cached_images/3f66e5fb7f33104b92789579b35c695103b9b938.png)
+    """.trimIndent()
+    type = STABLE
+
+    file = tasks.remapJar.get().archiveFile
+    additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
+    when (env) {
+        is EnvFabric -> modLoaders.addAll("fabric", "quilt")
+        is EnvNeo -> modLoaders.add("neoforge")
+    }
+
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_API_KEY")
+        projectId = "VhUy58Cq"
+        displayName = "Bundles Beyond ${version.get()}"
+        minecraftVersionRange {
+            start = env.mcVersion.min
+            end = env.mcVersion.max.ifEmpty { env.mcVersion.min }
+        }
+
+        if (env is EnvFabric) {
+            requires("fabric-api")
+            optional("modmenu")
+        }
+    }
 }

@@ -1,5 +1,5 @@
-name: build
-on: [pull_request, push, workflow_dispatch]
+name: Publish Mod
+on: [workflow_dispatch] # Manual trigger
 
 jobs:
   build:
@@ -8,7 +8,7 @@ jobs:
       - name: checkout repository
         uses: actions/checkout@v5
       - name: validate gradle wrapper
-        uses: gradle/actions/wrapper-validation@v5
+        uses: gradle/actions/wrapper-validation@v3
       - name: setup jdk
         uses: actions/setup-java@v5
         with:
@@ -25,11 +25,6 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: build
-        run: ./gradlew build --no-daemon
-      - name: capture build artifacts
-        uses: actions/upload-artifact@v5
-        with:
-          name: Artifacts
-          path: |
-            **/build/libs/
+      - run: ./gradlew build publishMods --no-daemon
+        env:
+          MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
