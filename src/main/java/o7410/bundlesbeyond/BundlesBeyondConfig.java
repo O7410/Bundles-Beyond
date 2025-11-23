@@ -9,7 +9,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 //?} else {
 /*import net.neoforged.fml.loading.FMLPaths;
-import org.jetbrains.annotations.Range;
 *///?}
 
 import java.io.BufferedReader;

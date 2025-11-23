@@ -1,8 +1,5 @@
 package o7410.bundlesbeyond;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.network.packet.c2s.play.BundleItemSelectedC2SPacket;
 //? if fabric {
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -18,15 +15,17 @@ import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 *///?}
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.util.Identifier;
 //? if <1.21.10 {
-/*import net.minecraft.util.Util;
+/*import net.minecraft.Util;
 *///?}
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.game.ServerboundSelectBundleItemPacket;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.ResourceLocation;
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.function.Consumer;
 
 //? if neoforge {
@@ -39,21 +38,21 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     //? if <1.21.10 {
-    /*public static final String KEY_CATEGORY = Util.createTranslationKey("category", Identifier.of(MOD_ID, "bundles_beyond"));
+    /*public static final String KEY_CATEGORY = Util.makeDescriptionId("category", ResourceLocation.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
     *///?} else if fabric {
-    public static final KeyBinding.Category KEY_CATEGORY = KeyBinding.Category.create(Identifier.of(MOD_ID, "bundles_beyond"));
+    public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
     //?} else if neoforge {
-    /*public static final KeyBinding.Category KEY_CATEGORY = new KeyBinding.Category(Identifier.of(MOD_ID, "bundles_beyond"));
+    /*public static final KeyMapping.Category KEY_CATEGORY = new KeyMapping.Category(ResourceLocation.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
     *///?}
 
-    public static final KeyBinding SCROLL_AXIS_KEY = new KeyBinding(
+    public static final KeyMapping SCROLL_AXIS_KEY = new KeyMapping(
             "key." + MOD_ID + ".scroll_axis",
-            InputUtil.UNKNOWN_KEY.getCode(),
+            InputConstants.UNKNOWN.getValue(),
             KEY_CATEGORY
     );
-    public static final KeyBinding MOD_ENABLED_KEY = new KeyBinding(
+    public static final KeyMapping MOD_ENABLED_KEY = new KeyMapping(
             "key." + MOD_ID + ".mod_enabled",
-            InputUtil.UNKNOWN_KEY.getCode(),
+            InputConstants.UNKNOWN.getValue(),
             KEY_CATEGORY
     );
 
@@ -79,7 +78,7 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
         *///?}
     }
 
-    private static void registerKeybinds(Consumer<KeyBinding> register) {
+    private static void registerKeybinds(Consumer<KeyMapping> register) {
         register.accept(SCROLL_AXIS_KEY);
         register.accept(MOD_ENABLED_KEY);
     }
@@ -88,8 +87,8 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     /*@SubscribeEvent
     private static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         //? if >=1.21.10 {
-        /^event.registerCategory(KEY_CATEGORY);
-        ^///?}
+        event.registerCategory(KEY_CATEGORY);
+        //?}
         registerKeybinds(event::register);
     }
     *///?}
@@ -101,22 +100,18 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     }
     *///?}
 
-    public static int getKeyCode(KeyBinding keyBinding) {
+    public static int getKeyCode(KeyMapping keyBinding) {
         //? if fabric {
-        return KeyBindingHelper.getBoundKeyOf(keyBinding).getCode();
+        return KeyBindingHelper.getBoundKeyOf(keyBinding).getValue();
         //?} else {
-        /*return keyBinding.getKey().getCode();
+        /*return keyBinding.getKey().getValue();
         *///?}
     }
 
     public static void sendBundleSelectedPacket(int slotId, int selectedIndex) {
-        ClientPlayNetworkHandler clientPlayNetworkHandler = MinecraftClient.getInstance().getNetworkHandler();
+        ClientPacketListener clientPlayNetworkHandler = Minecraft.getInstance().getConnection();
         if (clientPlayNetworkHandler == null) return;
-        BundleItemSelectedC2SPacket packet = new BundleItemSelectedC2SPacket(slotId, selectedIndex);
-        //? if fabric {
-        clientPlayNetworkHandler.sendPacket(packet);
-        //?} else {
-        /*clientPlayNetworkHandler.send(packet);
-        *///?}
+        ServerboundSelectBundleItemPacket packet = new ServerboundSelectBundleItemPacket(slotId, selectedIndex);
+        clientPlayNetworkHandler.send(packet);
     }
 }

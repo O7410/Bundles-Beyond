@@ -1,56 +1,56 @@
 package o7410.bundlesbeyond;
 
-//? if >=1.21.8 {
-import net.minecraft.client.gl.RenderPipelines;
-//?} else {
-/*import net.minecraft.client.render.RenderLayer;
-*///?}
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.client.gui.widget.TextWidget;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
 //? if <1.21.10 {
-/*import net.minecraft.client.input.KeyCodes;
-*///?} else {
-import net.minecraft.client.input.KeyInput;
+/*import net.minecraft.client.gui.navigation.CommonInputs;
+ *///?} else {
+import net.minecraft.client.input.KeyEvent;
 //?}
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+//? if >=1.21.8 {
+import net.minecraft.client.renderer.RenderPipelines;
+//?} else {
+/*import net.minecraft.client.renderer.RenderType;
+ *///?}
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import o7410.bundlesbeyond.mixin.SliderWidgetAccessor;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 public class BundlesBeyondConfigScreen extends Screen {
-    private static final Identifier TEXTURE = Identifier.of(BundlesBeyond.MOD_ID, "textures/gui/config.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(BundlesBeyond.MOD_ID, "textures/gui/config.png");
     private static final int BACKGROUND_WIDTH = 222;
     private static final int BACKGROUND_HEIGHT = 148;
-    private static final Text FAILED_TO_RELOAD_TEXT = Text.literal("Failed to reload").formatted(Formatting.RED);
-    private static final Text FAILED_TO_SAVE_TEXT = Text.literal("Failed to save").formatted(Formatting.RED);
+    private static final Component FAILED_TO_RELOAD_TEXT = Component.literal("Failed to reload").withStyle(ChatFormatting.RED);
+    private static final Component FAILED_TO_SAVE_TEXT = Component.literal("Failed to save").withStyle(ChatFormatting.RED);
 
     @Nullable private final Screen parentScreen;
     private ModEnabledStateButton[] modEnabledStateButtons;
     private ScrollModeButton[] scrollModeButtons;
-    private TextWidget failedToReload;
-    private TextWidget failedToSave;
+    private StringWidget failedToReload;
+    private StringWidget failedToSave;
 
     public BundlesBeyondConfigScreen(@Nullable Screen parentScreen) {
-        super(Text.literal("Bundles Beyond config"));
+        super(Component.literal("Bundles Beyond config"));
         this.parentScreen = parentScreen;
     }
 
     @Override
-    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderBackground(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.renderBackground(context, mouseX, mouseY, delta);
 
-        context.drawTexture(
+        context.blit(
                 //? if >=1.21.8 {
                 RenderPipelines.GUI_TEXTURED,
                 //?} else {
-                /*RenderLayer::getGuiTextured,
+                /*RenderType::guiTextured,
                 *///?}
                 TEXTURE,
                 (this.width - BACKGROUND_WIDTH) / 2,
@@ -59,15 +59,15 @@ public class BundlesBeyondConfigScreen extends Screen {
                 BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
                 256, 256
         );
-        context.drawTextWithShadow(
-                this.textRenderer,
+        context.drawString(
+                this.font,
                 "Mod Enabled State",
                 (this.width - BACKGROUND_WIDTH) / 2 + 9,
                 (this.height + BACKGROUND_HEIGHT) / 2 - 40,
                 0xFFFFFFFF
         );
-        context.drawCenteredTextWithShadow(
-                this.textRenderer,
+        context.drawCenteredString(
+                this.font,
                 "Scroll Mode",
                 this.width / 2,
                 (this.height - BACKGROUND_HEIGHT) / 2 + 5,
@@ -79,17 +79,17 @@ public class BundlesBeyondConfigScreen extends Screen {
     protected void init() {
         super.init();
 
-        this.addDrawableChild(
-                ButtonWidget.builder(Text.literal("Reload"), this::reloadConfig)
-                        .dimensions((this.width + BACKGROUND_WIDTH) / 2 - 49, (this.height + BACKGROUND_HEIGHT) / 2 - 30, 40, 20)
-                        .tooltip(Tooltip.of(Text.literal("Reload config")))
+        this.addRenderableWidget(
+                Button.builder(Component.literal("Reload"), this::reloadConfig)
+                        .bounds((this.width + BACKGROUND_WIDTH) / 2 - 49, (this.height + BACKGROUND_HEIGHT) / 2 - 30, 40, 20)
+                        .tooltip(Tooltip.create(Component.literal("Reload config")))
                         .build());
 
         addModEnabledStateButtons();
         addScrollModeButtons();
         addFailedTextWidgets();
 
-        this.addDrawableChild(
+        this.addRenderableWidget(
                 new SlotSizeSlider((this.width - BACKGROUND_WIDTH) / 2 + 9, (this.height - BACKGROUND_HEIGHT) / 2 + 85,
                         204, 20, BundlesBeyondConfig.instance().slotSize));
 
@@ -97,51 +97,51 @@ public class BundlesBeyondConfigScreen extends Screen {
     }
 
     private void addFailedTextWidgets() {
-        this.failedToReload = new TextWidget(
-                (this.width + BACKGROUND_WIDTH) / 2 - this.textRenderer.getWidth(FAILED_TO_RELOAD_TEXT) - 10,
+        this.failedToReload = new StringWidget(
+                (this.width + BACKGROUND_WIDTH) / 2 - this.font.width(FAILED_TO_RELOAD_TEXT) - 10,
                 (this.height + BACKGROUND_HEIGHT) / 2 - 40,
-                this.textRenderer.getWidth(FAILED_TO_RELOAD_TEXT),
+                this.font.width(FAILED_TO_RELOAD_TEXT),
                 9,
                 FAILED_TO_RELOAD_TEXT,
-                this.textRenderer
+                this.font
         );
-        this.failedToReload.setTooltip(Tooltip.of(Text.literal("See log for details")));
+        this.failedToReload.setTooltip(Tooltip.create(Component.literal("See log for details")));
         this.failedToReload.visible = false;
-        this.addDrawableChild(this.failedToReload);
+        this.addRenderableWidget(this.failedToReload);
 
-        this.failedToSave = new TextWidget(
-                (this.width + BACKGROUND_WIDTH) / 2 - this.textRenderer.getWidth(FAILED_TO_SAVE_TEXT) - 10,
+        this.failedToSave = new StringWidget(
+                (this.width + BACKGROUND_WIDTH) / 2 - this.font.width(FAILED_TO_SAVE_TEXT) - 10,
                 (this.height + BACKGROUND_HEIGHT) / 2 - 40,
-                this.textRenderer.getWidth(FAILED_TO_SAVE_TEXT),
+                this.font.width(FAILED_TO_SAVE_TEXT),
                 9,
                 FAILED_TO_SAVE_TEXT,
-                this.textRenderer
+                this.font
         );
-        this.failedToSave.setTooltip(Tooltip.of(Text.literal("See log for details")));
+        this.failedToSave.setTooltip(Tooltip.create(Component.literal("See log for details")));
         this.failedToSave.visible = false;
-        this.addDrawableChild(this.failedToSave);
+        this.addRenderableWidget(this.failedToSave);
     }
 
     private void addScrollModeButtons() {
         int topY = (this.height - BACKGROUND_HEIGHT) / 2;
         int centerX = this.width / 2;
-        ScrollModeButton scrollModeVanillaButton = this.addDrawableChild(
+        ScrollModeButton scrollModeVanillaButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.VANILLA,
                         centerX - 100 - 2, topY + 15, 204, 20));
 
-        ScrollModeButton scrollModeHorizontalButton = this.addDrawableChild(
+        ScrollModeButton scrollModeHorizontalButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.HORIZONTAL,
                         centerX - 100 - 2, topY + 38, 100, 20));
 
-        ScrollModeButton scrollModeVerticalButton = this.addDrawableChild(
+        ScrollModeButton scrollModeVerticalButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.VERTICAL,
                         centerX + 2, topY + 38, 100, 20));
 
-        ScrollModeButton scrollModeHoldForHorizontalButton = this.addDrawableChild(
+        ScrollModeButton scrollModeHoldForHorizontalButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.HOLD_FOR_HORIZONTAL,
                         centerX + 2, topY + 61, 100, 20));
 
-        ScrollModeButton scrollModeHoldForVerticalButton = this.addDrawableChild(
+        ScrollModeButton scrollModeHoldForVerticalButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.HOLD_FOR_VERTICAL,
                         centerX - 100 - 2, topY + 61, 100, 20));
 
@@ -157,15 +157,15 @@ public class BundlesBeyondConfigScreen extends Screen {
     private void addModEnabledStateButtons() {
         int bottomY = (this.height + BACKGROUND_HEIGHT) / 2;
         int leftX = (this.width - BACKGROUND_WIDTH) / 2;
-        ModEnabledStateButton modEnabledStateOnButton = this.addDrawableChild(
+        ModEnabledStateButton modEnabledStateOnButton = this.addRenderableWidget(
                 new ModEnabledStateButton(ModEnabledState.ON,
                         leftX + 9, bottomY - 30, 34, 20));
 
-        ModEnabledStateButton modEnabledStateOffButton = this.addDrawableChild(
+        ModEnabledStateButton modEnabledStateOffButton = this.addRenderableWidget(
                 new ModEnabledStateButton(ModEnabledState.OFF,
                         leftX + 46, bottomY - 30, 34, 20));
 
-        ModEnabledStateButton modEnabledStateHoldKeyButton = this.addDrawableChild(
+        ModEnabledStateButton modEnabledStateHoldKeyButton = this.addRenderableWidget(
                 new ModEnabledStateButton(ModEnabledState.HOLD_KEY,
                         leftX + 83, bottomY - 30, 71, 20));
 
@@ -177,11 +177,11 @@ public class BundlesBeyondConfigScreen extends Screen {
     }
 
     @Override
-    public void close() {
-        this.client.setScreen(this.parentScreen);
+    public void onClose() {
+        this.minecraft.setScreen(this.parentScreen);
     }
 
-    private void reloadConfig(ButtonWidget button) {
+    private void reloadConfig(Button button) {
         this.failedToReload.visible = !BundlesBeyondConfig.load();
         if (this.failedToReload.visible) {
             this.failedToSave.visible = false;
@@ -208,7 +208,7 @@ public class BundlesBeyondConfigScreen extends Screen {
         }
     }
 
-    private class ScrollModeButton extends ButtonWidget {
+    private class ScrollModeButton extends Button {
         public final ScrollMode scrollMode;
 
         public ScrollModeButton(ScrollMode scrollMode, int x, int y, int width, int height) {
@@ -216,13 +216,13 @@ public class BundlesBeyondConfigScreen extends Screen {
                 BundlesBeyondConfig.instance().scrollMode = scrollMode;
                 save();
                 updateButtons();
-            }, DEFAULT_NARRATION_SUPPLIER);
-            this.setTooltip(Tooltip.of(scrollMode.getDescriptionText()));
+            }, DEFAULT_NARRATION);
+            this.setTooltip(Tooltip.create(scrollMode.getDescriptionText()));
             this.scrollMode = scrollMode;
         }
     }
 
-    private class ModEnabledStateButton extends ButtonWidget {
+    private class ModEnabledStateButton extends Button {
         public final ModEnabledState modEnabledState;
 
         public ModEnabledStateButton(ModEnabledState modEnabledState, int x, int y, int width, int height) {
@@ -230,13 +230,13 @@ public class BundlesBeyondConfigScreen extends Screen {
                 BundlesBeyondConfig.instance().modEnabledState = modEnabledState;
                 save();
                 updateButtons();
-            }, DEFAULT_NARRATION_SUPPLIER);
-            this.setTooltip(Tooltip.of(modEnabledState.getDescriptionText()));
+            }, DEFAULT_NARRATION);
+            this.setTooltip(Tooltip.create(modEnabledState.getDescriptionText()));
             this.modEnabledState = modEnabledState;
         }
     }
 
-    private class SlotSizeSlider extends SliderWidget {
+    private class SlotSizeSlider extends AbstractSliderButton {
         private static final int MIN_VALUE = 18;
         private static final int MAX_VALUE = 24;
 
@@ -256,7 +256,7 @@ public class BundlesBeyondConfigScreen extends Screen {
         @Override
         protected void updateMessage() {
             int slotSize = calculateSlotSize();
-            this.setMessage(Text.literal("Bundle Slot Size: " + slotSize + (slotSize == 24 ? " (Vanilla)" : "")));
+            this.setMessage(Component.literal("Bundle Slot Size: " + slotSize + (slotSize == 24 ? " (Vanilla)" : "")));
         }
 
         @Override
@@ -275,24 +275,24 @@ public class BundlesBeyondConfigScreen extends Screen {
         //? if <1.21.10 {
         /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         *///?} else {
-        public boolean keyPressed(KeyInput input) {
+        public boolean keyPressed(KeyEvent input) {
             int keyCode = input.key();
         //?}
             SliderWidgetAccessor self = (SliderWidgetAccessor) this;
             //? if <1.21.10 {
-            /*if (KeyCodes.isToggle(keyCode)) {
+            /*if (CommonInputs.selected(keyCode)) {
             *///?} else {
-            if (input.isEnterOrSpace()) {
+            if (input.isSelection()) {
             //?}
-                self.setSliderFocused(!self.getSliderFocused());
+                self.setCanChangeValue(!self.getCanChangeValue());
                 return true;
             }
-            if (self.getSliderFocused()) {
+            if (self.getCanChangeValue()) {
                 boolean pressedLeft = keyCode == GLFW.GLFW_KEY_LEFT;
                 if (pressedLeft || keyCode == GLFW.GLFW_KEY_RIGHT) {
                     int offset = pressedLeft ? -1 : 1;
 
-                    this.value = calculateValue(MathHelper.clamp(calculateSlotSize() + offset, MIN_VALUE, MAX_VALUE));
+                    this.value = calculateValue(Mth.clamp(calculateSlotSize() + offset, MIN_VALUE, MAX_VALUE));
                     this.applyValue();
                     this.updateMessage();
 

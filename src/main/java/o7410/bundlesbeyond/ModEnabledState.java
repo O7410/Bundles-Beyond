@@ -1,23 +1,22 @@
 package o7410.bundlesbeyond;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.serialization.Codec;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Text;
-import net.minecraft.util.StringIdentifiable;
-
 import java.util.function.Supplier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.util.StringRepresentable;
 
-public enum ModEnabledState implements StringIdentifiable {
+public enum ModEnabledState implements StringRepresentable {
     ON("On, press key to toggle", "on", "On", () -> true),
     OFF("Off, press key to toggle", "off", "Off", () -> false),
-    HOLD_KEY("Hold key to enable", "hold_key", "Hold key", () -> InputUtil.isKeyPressed(
-            MinecraftClient.getInstance().getWindow()/*? if <1.21.10 {*//*.getHandle()*//*?}*/,
+    HOLD_KEY("Hold key to enable", "hold_key", "Hold key", () -> InputConstants.isKeyDown(
+            Minecraft.getInstance().getWindow()/*? if <1.21.10 {*//*.getWindow()*//*?}*/,
             BundlesBeyond.getKeyCode(BundlesBeyond.MOD_ENABLED_KEY)
     ));
 
-    public static final Codec<ModEnabledState> CODEC = StringIdentifiable.createCodec(ModEnabledState::values);
+    public static final Codec<ModEnabledState> CODEC = StringRepresentable.fromEnum(ModEnabledState::values);
 
     public final String description;
     public final String id;
@@ -35,12 +34,12 @@ public enum ModEnabledState implements StringIdentifiable {
         return isEnabled.get();
     }
 
-    public Text getDescriptionText() {
-        return Text.literal(this.description);
+    public Component getDescriptionText() {
+        return Component.literal(this.description);
     }
 
-    public Text getShortNameText() {
-        return Text.literal(this.shortName).styled(style -> style.withHoverEvent(
+    public Component getShortNameText() {
+        return Component.literal(this.shortName).withStyle(style -> style.withHoverEvent(
                 //? if <1.21.8 {
                 /*new HoverEvent(HoverEvent.Action.SHOW_TEXT, this.getDescriptionText())
                 *///?} else {
@@ -50,7 +49,7 @@ public enum ModEnabledState implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return this.id;
     }
 

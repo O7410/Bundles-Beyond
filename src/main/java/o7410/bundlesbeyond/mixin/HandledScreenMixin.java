@@ -1,12 +1,5 @@
 package o7410.bundlesbeyond.mixin;
 
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.tooltip.BundleTooltipSubmenuHandler;
-import net.minecraft.client.gui.tooltip.TooltipSubmenuHandler;
-//? if >=1.21.10 {
-import net.minecraft.client.input.KeyInput;
-//?}
-import net.minecraft.screen.slot.Slot;
 import o7410.bundlesbeyond.BundleTooltipAdditions;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -18,29 +11,36 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
+import net.minecraft.client.gui.BundleMouseActions;
+import net.minecraft.client.gui.ItemSlotMouseAction;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+//? if >=1.21.10 {
+import net.minecraft.client.input.KeyEvent;
+//?}
+import net.minecraft.world.inventory.Slot;
 
-@Mixin(HandledScreen.class)
+@Mixin(AbstractContainerScreen.class)
 public abstract class HandledScreenMixin {
-    @Shadow @Nullable protected Slot focusedSlot;
+    @Shadow @Nullable protected Slot hoveredSlot;
 
-    @Shadow @Final private List<TooltipSubmenuHandler> tooltipSubmenuHandlers;
+    @Shadow @Final private List<ItemSlotMouseAction> itemSlotMouseActions;
 
     //? if <1.21.10 {
-    /*@Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;handleHotbarKeyPressed(II)Z"), cancellable = true)
+    /*@Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;checkHotbarKeyPressed(II)Z"), cancellable = true)
     private void bundleSubmenuKeyHandling(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
     *///?} else {
-    @Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;handleHotbarKeyPressed(Lnet/minecraft/client/input/KeyInput;)Z"), cancellable = true)
-    private void bundleSubmenuKeyHandling(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;checkHotbarKeyPressed(Lnet/minecraft/client/input/KeyEvent;)Z"), cancellable = true)
+    private void bundleSubmenuKeyHandling(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
         int keyCode = input.key();
     //?}
-        if (this.focusedSlot == null || !this.focusedSlot.hasStack()) {
+        if (this.hoveredSlot == null || !this.hoveredSlot.hasItem()) {
             return;
         }
-        for (TooltipSubmenuHandler tooltipSubmenuHandler : this.tooltipSubmenuHandlers) {
+        for (ItemSlotMouseAction tooltipSubmenuHandler : this.itemSlotMouseActions) {
             if (
-                    tooltipSubmenuHandler instanceof BundleTooltipSubmenuHandler &&
-                    tooltipSubmenuHandler.isApplicableTo(this.focusedSlot) &&
-                    BundleTooltipAdditions.handleKeybindsInBundleGui(this.focusedSlot, keyCode)
+                    tooltipSubmenuHandler instanceof BundleMouseActions &&
+                    tooltipSubmenuHandler.matches(this.hoveredSlot) &&
+                    BundleTooltipAdditions.handleKeybindsInBundleGui(this.hoveredSlot, keyCode)
             ) {
                 cir.setReturnValue(true);
             }
@@ -48,7 +48,7 @@ public abstract class HandledScreenMixin {
     }
 
     @Unique
-    protected List<TooltipSubmenuHandler> bundlesBeyond$getTooltipSubmenuHandlers() {
-        return tooltipSubmenuHandlers;
+    protected List<ItemSlotMouseAction> bundlesBeyond$getTooltipSubmenuHandlers() {
+        return itemSlotMouseActions;
     }
 }

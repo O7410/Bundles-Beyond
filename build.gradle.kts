@@ -135,17 +135,19 @@ dependencies {
 
     if (env is EnvFabric) {
         modImplementation("net.fabricmc:fabric-loader:${env.fabricLoaderVersion.min}")
-        mappings("net.fabricmc:yarn:${env.yarnMappings}:v2")
+        mappings(loom.officialMojangMappings())
+//        mappings("net.fabricmc:yarn:${env.yarnMappings}:v2")
 
         modImplementation("net.fabricmc.fabric-api:fabric-api:${env.fabricApiVersion.min}")
         env.modmenuVersion?.let { modImplementation("com.terraformersmc:modmenu:${it.min}") }
     }
     if (env is EnvNeo) {
         "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion.min}")
-        mappings(loom.layered {
-            mappings("net.fabricmc:yarn:${env.yarnMappings}:v2")
-            mappings("dev.architectury:yarn-mappings-patch-neoforge:${env.yarnNeoforgePatch}")
-        })
+        mappings(loom.officialMojangMappings())
+//        mappings(loom.layered {
+//            mappings("net.fabricmc:yarn:${env.yarnMappings}:v2")
+//            mappings("dev.architectury:yarn-mappings-patch-neoforge:${env.yarnNeoforgePatch}")
+//        })
     }
 
     vineflowerDecompilerClasspath("org.vineflower:vineflower:1.11.2")

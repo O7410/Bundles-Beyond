@@ -1,38 +1,38 @@
 package o7410.bundlesbeyond;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.GameOptions;
-import net.minecraft.item.BundleItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.BundleItem;
+import net.minecraft.world.item.ItemStack;
 import o7410.bundlesbeyond.mixin.HandledScreenAccessor;
 import org.lwjgl.glfw.GLFW;
 
 public class BundleTooltipAdditions {
 
     public static boolean handleKeybindsInBundleGui(Slot slot, int keyCode) {
-        ItemStack stack = slot.getStack();
-        MinecraftClient client = MinecraftClient.getInstance();
-        ClientPlayerEntity player = client.player;
+        ItemStack stack = slot.getItem();
+        Minecraft client = Minecraft.getInstance();
+        LocalPlayer player = client.player;
         if (player == null) return false;
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         if (config.modEnabledState != ModEnabledState.HOLD_KEY && keyCode == BundlesBeyond.getKeyCode(BundlesBeyond.MOD_ENABLED_KEY)) {
             config.modEnabledState = config.modEnabledState == ModEnabledState.ON ? ModEnabledState.OFF : ModEnabledState.ON;
             BundlesBeyondConfig.save();
-            player.sendMessage(Text.literal("Bundles Beyond " + (config.modEnabledState == ModEnabledState.ON ? "enabled" : "disabled")), true);
-            int selectedIndex = BundleItem.getSelectedStackIndex(stack);
+            player.displayClientMessage(Component.literal("Bundles Beyond " + (config.modEnabledState == ModEnabledState.ON ? "enabled" : "disabled")), true);
+            int selectedIndex = BundleItem.getSelectedItem(stack);
             if (config.modEnabledState == ModEnabledState.ON) return true;
-            int shownStacksWhenDisabled = BundleItem.getNumberOfStacksShown(stack);
+            int shownStacksWhenDisabled = BundleItem.getNumberOfItemsToShow(stack);
             if (selectedIndex >= shownStacksWhenDisabled) {
                 selectedIndex = -1;
-                BundleItem.setSelectedStackIndex(stack, selectedIndex);
-                BundlesBeyond.sendBundleSelectedPacket(slot.id, selectedIndex);
+                BundleItem.toggleSelectedItem(stack, selectedIndex);
+                BundlesBeyond.sendBundleSelectedPacket(slot.index, selectedIndex);
             }
             return true;
         }
@@ -43,15 +43,15 @@ public class BundleTooltipAdditions {
                 keyCode == BundlesBeyond.getKeyCode(BundlesBeyond.SCROLL_AXIS_KEY)) {
             config.scrollMode = config.scrollMode == ScrollMode.HORIZONTAL ? ScrollMode.VERTICAL : ScrollMode.HORIZONTAL;
             BundlesBeyondConfig.save();
-            player.sendMessage(Text.literal("Now scrolling " + (config.scrollMode == ScrollMode.HORIZONTAL ? "horizontally" : "vertically")), true);
+            player.displayClientMessage(Component.literal("Now scrolling " + (config.scrollMode == ScrollMode.HORIZONTAL ? "horizontally" : "vertically")), true);
             return true;
         }
 
         if (keyCode == GLFW.GLFW_KEY_SPACE) {
-            if (client.currentScreen instanceof HandledScreen<?> handledScreen) {
-                ScreenHandler currentScreenHandler = player.currentScreenHandler;
-                int button = currentScreenHandler.getCursorStack().isEmpty() ? 1 : 0; // right : left
-                ((HandledScreenAccessor) handledScreen).callOnMouseClick(slot, slot.id, button, SlotActionType.PICKUP);
+            if (client.screen instanceof AbstractContainerScreen<?> handledScreen) {
+                AbstractContainerMenu currentScreenHandler = player.containerMenu;
+                int button = currentScreenHandler.getCarried().isEmpty() ? 1 : 0; // right : left
+                ((HandledScreenAccessor) handledScreen).callSlotClicked(slot, slot.index, button, ClickType.PICKUP);
             }
             return true;
         }
@@ -61,7 +61,7 @@ public class BundleTooltipAdditions {
                 if (config.slotSize < 24) {
                     config.slotSize++;
                     String message = "Slot size is now: " + config.slotSize + (config.slotSize == 24 ? " (Vanilla)" : "");
-                    player.sendMessage(Text.literal(message), true);
+                    player.displayClientMessage(Component.literal(message), true);
                     BundlesBeyondConfig.save();
                 }
             }
@@ -69,22 +69,22 @@ public class BundleTooltipAdditions {
                 if (config.slotSize > 18) {
                     config.slotSize--;
                     String message = "Slot size is now: " + config.slotSize + (config.slotSize == 24 ? " (Vanilla)" : "");
-                    player.sendMessage(Text.literal(message), true);
+                    player.displayClientMessage(Component.literal(message), true);
                     BundlesBeyondConfig.save();
                 }
             }
         }
 
-        int selectedIndex = BundleItem.getSelectedStackIndex(stack);
-        int size = BundleItem.getNumberOfStacksShown(stack);
+        int selectedIndex = BundleItem.getSelectedItem(stack);
+        int size = BundleItem.getNumberOfItemsToShow(stack);
         if (size == 0) return false;
         int width = BundleTooltipAdditions.getModifiedBundleTooltipColumns(size);
         int height = BundleTooltipAdditions.getModifiedBundleTooltipRows(size, width);
-        GameOptions gameOptions = client.options;
-        int forwardCode = BundlesBeyond.getKeyCode(gameOptions.forwardKey);
-        int leftCode = BundlesBeyond.getKeyCode(gameOptions.leftKey);
-        int backCode = BundlesBeyond.getKeyCode(gameOptions.backKey);
-        int rightCode = BundlesBeyond.getKeyCode(gameOptions.rightKey);
+        Options gameOptions = client.options;
+        int forwardCode = BundlesBeyond.getKeyCode(gameOptions.keyUp);
+        int leftCode = BundlesBeyond.getKeyCode(gameOptions.keyLeft);
+        int backCode = BundlesBeyond.getKeyCode(gameOptions.keyDown);
+        int rightCode = BundlesBeyond.getKeyCode(gameOptions.keyRight);
         if (keyCode == forwardCode || keyCode == GLFW.GLFW_KEY_UP) {
             selectedIndex = BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, -1);
         } else if (keyCode == leftCode || keyCode == GLFW.GLFW_KEY_LEFT) {
@@ -98,8 +98,8 @@ public class BundleTooltipAdditions {
         }
         if (selectedIndex == -1) return false;
 
-        BundleItem.setSelectedStackIndex(stack, selectedIndex);
-        BundlesBeyond.sendBundleSelectedPacket(slot.id, selectedIndex);
+        BundleItem.toggleSelectedItem(stack, selectedIndex);
+        BundlesBeyond.sendBundleSelectedPacket(slot.index, selectedIndex);
         return true;
     }
 
@@ -178,7 +178,7 @@ public class BundleTooltipAdditions {
     }
 
     public static int getModifiedBundleTooltipColumns(int size) {
-        return Math.max(4, MathHelper.ceil(Math.sqrt(size)));
+        return Math.max(4, Mth.ceil(Math.sqrt(size)));
     }
 
     public static int getModifiedBundleTooltipColumnsPixels(int size) {
@@ -186,6 +186,6 @@ public class BundleTooltipAdditions {
     }
 
     public static int getModifiedBundleTooltipRows(int size, int columns) {
-        return MathHelper.ceilDiv(size, columns);
+        return Mth.positiveCeilDiv(size, columns);
     }
 }
