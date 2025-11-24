@@ -109,9 +109,9 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     }
 
     public static void sendBundleSelectedPacket(int slotId, int selectedIndex) {
-        ClientPacketListener clientPlayNetworkHandler = Minecraft.getInstance().getConnection();
-        if (clientPlayNetworkHandler == null) return;
+        ClientPacketListener clientPacketListener = Minecraft.getInstance().getConnection();
+        if (clientPacketListener == null) return;
         ServerboundSelectBundleItemPacket packet = new ServerboundSelectBundleItemPacket(slotId, selectedIndex);
-        clientPlayNetworkHandler.send(packet);
+        clientPacketListener.send(packet);
     }
 }

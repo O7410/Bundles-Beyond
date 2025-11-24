@@ -14,23 +14,23 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(CreativeModeInventoryScreen.class)
-public abstract class CreativeInventoryScreenMixin extends HandledScreenMixin {
+public abstract class CreativeModeInventoryScreenMixin extends AbstractContainerScreenMixin {
     @Shadow private boolean ignoreTextInput;
 
     @Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/CreativeModeInventoryScreen;isCreativeSlot(Lnet/minecraft/world/inventory/Slot;)Z"), cancellable = true)
     //? if <1.21.10 {
-    /*private void bundleSubmenuKeyHandling(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+    /*private void bundleItemSlotMouseActionKeyHandling(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
     *///?} else {
-    private void bundleSubmenuKeyHandling(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
+    private void bundleItemSlotMouseActionKeyHandling(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
         int keyCode = input.key();
     //?}
         if (this.hoveredSlot == null || !this.hoveredSlot.hasItem()) {
             return;
         }
-        for (ItemSlotMouseAction tooltipSubmenuHandler : this.bundlesBeyond$getTooltipSubmenuHandlers()) {
+        for (ItemSlotMouseAction itemSlotMouseAction : this.bundlesBeyond$getItemSlotMouseActions()) {
             if (
-                    tooltipSubmenuHandler instanceof BundleMouseActions &&
-                    tooltipSubmenuHandler.matches(this.hoveredSlot) &&
+                    itemSlotMouseAction instanceof BundleMouseActions &&
+                    itemSlotMouseAction.matches(this.hoveredSlot) &&
                     BundleTooltipAdditions.handleKeybindsInBundleGui(this.hoveredSlot, keyCode)
             ) {
                 this.ignoreTextInput = true;

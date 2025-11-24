@@ -20,26 +20,26 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.world.inventory.Slot;
 
 @Mixin(AbstractContainerScreen.class)
-public abstract class HandledScreenMixin {
+public abstract class AbstractContainerScreenMixin {
     @Shadow @Nullable protected Slot hoveredSlot;
 
     @Shadow @Final private List<ItemSlotMouseAction> itemSlotMouseActions;
 
     //? if <1.21.10 {
     /*@Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;checkHotbarKeyPressed(II)Z"), cancellable = true)
-    private void bundleSubmenuKeyHandling(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+    private void bundleItemSlotMouseActionKeyHandling(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
     *///?} else {
     @Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;checkHotbarKeyPressed(Lnet/minecraft/client/input/KeyEvent;)Z"), cancellable = true)
-    private void bundleSubmenuKeyHandling(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
+    private void bundleItemSlotMouseActionKeyHandling(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
         int keyCode = input.key();
     //?}
         if (this.hoveredSlot == null || !this.hoveredSlot.hasItem()) {
             return;
         }
-        for (ItemSlotMouseAction tooltipSubmenuHandler : this.itemSlotMouseActions) {
+        for (ItemSlotMouseAction itemSlotMouseAction : this.itemSlotMouseActions) {
             if (
-                    tooltipSubmenuHandler instanceof BundleMouseActions &&
-                    tooltipSubmenuHandler.matches(this.hoveredSlot) &&
+                    itemSlotMouseAction instanceof BundleMouseActions &&
+                    itemSlotMouseAction.matches(this.hoveredSlot) &&
                     BundleTooltipAdditions.handleKeybindsInBundleGui(this.hoveredSlot, keyCode)
             ) {
                 cir.setReturnValue(true);
@@ -48,7 +48,7 @@ public abstract class HandledScreenMixin {
     }
 
     @Unique
-    protected List<ItemSlotMouseAction> bundlesBeyond$getTooltipSubmenuHandlers() {
+    protected List<ItemSlotMouseAction> bundlesBeyond$getItemSlotMouseActions() {
         return itemSlotMouseActions;
     }
 }

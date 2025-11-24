@@ -11,7 +11,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.ItemStack;
-import o7410.bundlesbeyond.mixin.HandledScreenAccessor;
+import o7410.bundlesbeyond.mixin.AbstractContainerScreenAccessor;
 import org.lwjgl.glfw.GLFW;
 
 public class BundleTooltipAdditions {
@@ -51,7 +51,7 @@ public class BundleTooltipAdditions {
             if (client.screen instanceof AbstractContainerScreen<?> handledScreen) {
                 AbstractContainerMenu currentScreenHandler = player.containerMenu;
                 int button = currentScreenHandler.getCarried().isEmpty() ? 1 : 0; // right : left
-                ((HandledScreenAccessor) handledScreen).callSlotClicked(slot, slot.index, button, ClickType.PICKUP);
+                ((AbstractContainerScreenAccessor) handledScreen).callSlotClicked(slot, slot.index, button, ClickType.PICKUP);
             }
             return true;
         }

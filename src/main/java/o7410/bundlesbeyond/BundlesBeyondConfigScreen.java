@@ -20,7 +20,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import o7410.bundlesbeyond.mixin.SliderWidgetAccessor;
+import o7410.bundlesbeyond.mixin.AbstractSliderButtonAccessor;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -212,12 +212,12 @@ public class BundlesBeyondConfigScreen extends Screen {
         public final ScrollMode scrollMode;
 
         public ScrollModeButton(ScrollMode scrollMode, int x, int y, int width, int height) {
-            super(x, y, width, height, scrollMode.getShortNameText(), button -> {
+            super(x, y, width, height, scrollMode.getShortNameComponent(), button -> {
                 BundlesBeyondConfig.instance().scrollMode = scrollMode;
                 save();
                 updateButtons();
             }, DEFAULT_NARRATION);
-            this.setTooltip(Tooltip.create(scrollMode.getDescriptionText()));
+            this.setTooltip(Tooltip.create(scrollMode.getDescriptionComponent()));
             this.scrollMode = scrollMode;
         }
     }
@@ -226,12 +226,12 @@ public class BundlesBeyondConfigScreen extends Screen {
         public final ModEnabledState modEnabledState;
 
         public ModEnabledStateButton(ModEnabledState modEnabledState, int x, int y, int width, int height) {
-            super(x, y, width, height, modEnabledState.getShortNameText(), button -> {
+            super(x, y, width, height, modEnabledState.getShortNameComponent(), button -> {
                 BundlesBeyondConfig.instance().modEnabledState = modEnabledState;
                 save();
                 updateButtons();
             }, DEFAULT_NARRATION);
-            this.setTooltip(Tooltip.create(modEnabledState.getDescriptionText()));
+            this.setTooltip(Tooltip.create(modEnabledState.getDescriptionComponent()));
             this.modEnabledState = modEnabledState;
         }
     }
@@ -278,7 +278,7 @@ public class BundlesBeyondConfigScreen extends Screen {
         public boolean keyPressed(KeyEvent input) {
             int keyCode = input.key();
         //?}
-            SliderWidgetAccessor self = (SliderWidgetAccessor) this;
+            AbstractSliderButtonAccessor self = (AbstractSliderButtonAccessor) this;
             //? if <1.21.10 {
             /*if (CommonInputs.selected(keyCode)) {
             *///?} else {

@@ -34,16 +34,16 @@ public enum ModEnabledState implements StringRepresentable {
         return isEnabled.get();
     }
 
-    public Component getDescriptionText() {
+    public Component getDescriptionComponent() {
         return Component.literal(this.description);
     }
 
-    public Component getShortNameText() {
+    public Component getShortNameComponent() {
         return Component.literal(this.shortName).withStyle(style -> style.withHoverEvent(
                 //? if <1.21.8 {
-                /*new HoverEvent(HoverEvent.Action.SHOW_TEXT, this.getDescriptionText())
+                /*new HoverEvent(HoverEvent.Action.SHOW_TEXT, this.getDescriptionComponent())
                 *///?} else {
-                new HoverEvent.ShowText(this.getDescriptionText())
+                new HoverEvent.ShowText(this.getDescriptionComponent())
                  //?}
         ));
     }

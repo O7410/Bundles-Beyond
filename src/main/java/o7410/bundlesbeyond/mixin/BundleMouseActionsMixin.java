@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(BundleMouseActions.class)
-public abstract class BundleTooltipSubmenuHandlerMixin {
+public abstract class BundleMouseActionsMixin {
 
     @Shadow @Final private Minecraft minecraft;
 

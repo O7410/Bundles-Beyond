@@ -87,13 +87,13 @@ public class BundlesBeyondCommand {
 
     private static int executeGetModEnabledState(CommandContext<? extends SharedSuggestionProvider> context) {
         ModEnabledState state = BundlesBeyondConfig.instance().modEnabledState;
-        sendFeedback(context, Component.literal("Bundles Beyond enabled state is currently: ").append(state.getShortNameText()));
+        sendFeedback(context, Component.literal("Bundles Beyond enabled state is currently: ").append(state.getShortNameComponent()));
         return 0;
     }
 
     private static CompletableFuture<Suggestions> getModEnabledStateSuggestions(CommandContext<? extends SharedSuggestionProvider> context, SuggestionsBuilder builder) {
         for (ModEnabledState state : ModEnabledState.values()) {
-            builder.suggest(state.id, state.getDescriptionText());
+            builder.suggest(state.id, state.getDescriptionComponent());
         }
         return builder.buildFuture();
     }
@@ -101,7 +101,7 @@ public class BundlesBeyondCommand {
     private static int executeSetModEnabledState(CommandContext<? extends SharedSuggestionProvider> context) {
         ModEnabledState newModEnabledState = context.getArgument("state", ModEnabledState.class);
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
-        sendFeedback(context, Component.literal("Bundles Beyond enabled state is now: ").append(newModEnabledState.getShortNameText()));
+        sendFeedback(context, Component.literal("Bundles Beyond enabled state is now: ").append(newModEnabledState.getShortNameComponent()));
         if (config.modEnabledState != newModEnabledState) {
             config.modEnabledState = newModEnabledState;
             if (!BundlesBeyondConfig.save()) {
@@ -112,20 +112,20 @@ public class BundlesBeyondCommand {
     }
 
     private static int executeGetScrollMode(CommandContext<? extends SharedSuggestionProvider> context) {
-        sendFeedback(context, Component.literal("Scroll mode is currently: ").append(BundlesBeyondConfig.instance().scrollMode.getShortNameText()));
+        sendFeedback(context, Component.literal("Scroll mode is currently: ").append(BundlesBeyondConfig.instance().scrollMode.getShortNameComponent()));
         return 0;
     }
 
     private static CompletableFuture<Suggestions> getScrollModeSuggestions(CommandContext<? extends SharedSuggestionProvider> context, SuggestionsBuilder builder) {
         for (ScrollMode scrollMode : ScrollMode.values()) {
-            builder.suggest(scrollMode.id, scrollMode.getDescriptionText());
+            builder.suggest(scrollMode.id, scrollMode.getDescriptionComponent());
         }
         return builder.buildFuture();
     }
 
     private static int executeSetScrollMode(CommandContext<? extends SharedSuggestionProvider> context) {
         ScrollMode newMode = context.getArgument("mode", ScrollMode.class);
-        sendFeedback(context, Component.literal("Scroll mode is now: ").append(newMode.getShortNameText()));
+        sendFeedback(context, Component.literal("Scroll mode is now: ").append(newMode.getShortNameComponent()));
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         if (config.scrollMode != newMode) {
             config.scrollMode = newMode;

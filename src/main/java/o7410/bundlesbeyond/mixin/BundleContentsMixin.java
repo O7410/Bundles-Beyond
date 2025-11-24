@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BundleContents.class)
-public abstract class BundleContentsComponentMixin {
+public abstract class BundleContentsMixin {
     @Inject(method = "getNumberOfItemsToShow", at = @At("HEAD"), cancellable = true)
     public void changeNumberOfStacksShown(CallbackInfoReturnable<Integer> cir) {
         if (!BundlesBeyond.isModEnabled()) return;

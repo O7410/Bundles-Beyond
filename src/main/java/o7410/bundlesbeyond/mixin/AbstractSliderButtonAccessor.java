@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(AbstractSliderButton.class)
-public interface SliderWidgetAccessor {
+public interface AbstractSliderButtonAccessor {
     @Accessor
     boolean getCanChangeValue();
 

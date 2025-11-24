@@ -3,14 +3,14 @@
 	"package": "o7410.bundlesbeyond.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"BundleContentsComponentMixin",
-		"BundleTooltipComponentMixin",
-		"BundleTooltipSubmenuHandlerMixin",
+        "BundleContentsMixin",
+        "ClientBundleTooltipMixin",
+        "BundleMouseActionsMixin",
 		"ChatScreenMixin",
-		"CreativeInventoryScreenMixin",
-		"HandledScreenAccessor",
-		"HandledScreenMixin",
-		"SliderWidgetAccessor",
+        "CreativeModeInventoryScreenMixin",
+        "AbstractContainerScreenAccessor",
+        "AbstractContainerScreenMixin",
+        "AbstractSliderButtonAccessor",
 		"BundleItemMixin"
 	],
 	"injectors": {

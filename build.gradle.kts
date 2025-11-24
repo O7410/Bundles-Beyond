@@ -10,51 +10,29 @@ repositories {
     maven("https://maven.terraformersmc.com/") { name = "Terraformers" }
 }
 
-fun listProperty(key: String): ArrayList<String> {
-    val str = property(key)!! as String
-    return ArrayList(str.split(" "))
-}
-
 class VersionRange(val min: String, val max: String) {
     fun asNeoforge(): String {
         if (min == max) return "[$min]"
-        val opener = if (min.isEmpty()) "(" else "["
         val closer = if (max.isEmpty()) ")" else "]"
-        return "$opener$min,$max$closer"
+        return "[$min,$max$closer"
     }
 
     fun asFabric(): String {
-        var out = ""
-        if (min.isNotEmpty() && min == max) {
-            return min
-        }
-        if (min.isNotEmpty()) {
-            out += ">=$min"
-        }
-        if (max.isNotEmpty()) {
-            if (out.isNotEmpty()) {
-                out += " "
-            }
-            out += "<=$max"
-        }
-        return out
+        if (min == max) return min
+        return ">=$min" + if (max.isNotEmpty()) " <=$max" else ""
     }
 }
 
 /**
- * Creates a VersionRange from a listProperty
+ * Creates a VersionRange from a property
  */
 fun versionProperty(key: String): VersionRange {
-    val list = listProperty(key)
-    for (i in 0 until list.size) {
-        if (list[i] == "UNSET") {
-            list[i] = ""
-        }
-    }
+    val str = property(key) as String
+    val list = str.split(" ")
     return when (list.size) {
-        0 -> VersionRange("", "")
         1 -> VersionRange(list[0], "")
-        else -> VersionRange(list[0], list[1])
+        2 -> VersionRange(list[0], list[1])
+        else -> throw GradleException("Invalid version range: $str")
     }
 }
 
@@ -63,19 +41,15 @@ fun versionProperty(key: String): VersionRange {
  */
 sealed class Env {
     val archivesBaseName = property("archives_base_name").toString()
-
     val mcVersion = versionProperty("deps.core.mc")
-
     val loader = property("loom.platform") as String
-
-    val yarnMappings = property("deps.core.yarn") as String
-    val yarnNeoforgePatch = property("deps.core.yarn.neoforge_patch") as String
+    val parchmentVersion = property("deps.core.parchment") as String
 }
 
 class EnvFabric : Env() {
     val fabricLoaderVersion = versionProperty("deps.core.fabric")
     val fabricApiVersion = versionProperty("deps.api.fabric_api")
-    val modmenuVersion = if (hasProperty("deps.api.modmenu")) versionProperty("deps.api.modmenu") else null
+    val modmenuVersion = versionProperty("deps.api.modmenu")
 }
 
 class EnvNeo : Env() {
@@ -135,20 +109,16 @@ dependencies {
 
     if (env is EnvFabric) {
         modImplementation("net.fabricmc:fabric-loader:${env.fabricLoaderVersion.min}")
-        mappings(loom.officialMojangMappings())
-//        mappings("net.fabricmc:yarn:${env.yarnMappings}:v2")
-
         modImplementation("net.fabricmc.fabric-api:fabric-api:${env.fabricApiVersion.min}")
-        env.modmenuVersion?.let { modImplementation("com.terraformersmc:modmenu:${it.min}") }
+        modImplementation("com.terraformersmc:modmenu:${env.modmenuVersion.min}")
     }
     if (env is EnvNeo) {
         "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion.min}")
-        mappings(loom.officialMojangMappings())
-//        mappings(loom.layered {
-//            mappings("net.fabricmc:yarn:${env.yarnMappings}:v2")
-//            mappings("dev.architectury:yarn-mappings-patch-neoforge:${env.yarnNeoforgePatch}")
-//        })
     }
+    mappings(loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${env.mcVersion.min}:${env.parchmentVersion}@zip")
+    })
 
     vineflowerDecompilerClasspath("org.vineflower:vineflower:1.11.2")
 }

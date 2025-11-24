@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(AbstractContainerScreen.class)
-public interface HandledScreenAccessor {
+public interface AbstractContainerScreenAccessor {
     @Invoker
     void callSlotClicked(Slot slot, int slotId, int button, ClickType actionType);
 }

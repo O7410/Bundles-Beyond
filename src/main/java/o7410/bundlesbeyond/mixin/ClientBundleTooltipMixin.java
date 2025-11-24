@@ -29,7 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ClientBundleTooltip.class)
-public abstract class BundleTooltipComponentMixin {
+public abstract class ClientBundleTooltipMixin {
     @Shadow @Final private BundleContents contents;
 
     @Inject(method = "slotCount", at = @At("HEAD"), cancellable = true)
@@ -142,7 +142,7 @@ public abstract class BundleTooltipComponentMixin {
         return BundlesBeyondConfig.instance().slotSize;
     }
     //? if =1.21.3 {
-    /*@ModifyConstant(method = "drawItem", constant = @Constant(intValue = 24))
+    /*@ModifyConstant(method = "renderSlot", constant = @Constant(intValue = 24))
     private int modifySlotTextureSize(int constant) {
         if (!BundlesBeyond.isModEnabled()) return constant;
         return BundlesBeyondConfig.instance().slotSize;
