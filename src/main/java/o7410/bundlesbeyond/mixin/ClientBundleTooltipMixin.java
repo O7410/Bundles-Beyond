@@ -7,8 +7,9 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 /*import net.minecraft.client.renderer.RenderType;
 import java.util.function.Function;
 *///?}
-//? if >=1.21.4
-import net.minecraft.resources.ResourceLocation;
+//? if >=1.21.4 {
+import net.minecraft.resources./*$ resource_location {*/Identifier/*$}*/;
+//?}
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientBundleTooltip;
@@ -149,9 +150,11 @@ public abstract class ClientBundleTooltipMixin {
     }
     *///?}
 
-    //? if >=1.21.8 {
-    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V"))
-    //?}
+    //? if >=1.21.11 {
+    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V"))
+    //?} else if >=1.21.8 {
+    /*@WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V"))
+    *///?}
     //? if =1.21.4 {
     /*@WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Ljava/util/function/Function;Lnet/minecraft/resources/ResourceLocation;IIII)V"))
     *///?}
@@ -159,7 +162,7 @@ public abstract class ClientBundleTooltipMixin {
     private void fractionalSlotOffset(GuiGraphics instance,
                                       /*? if >=1.21.8 {*/RenderPipeline pipeline,
                                       /*?} else {*//*Function<ResourceLocation, RenderType> renderLayers,*//*?}*/
-                                      ResourceLocation sprite, int x, int y, int width, int height, Operation<Void> original) {
+                                      /*$ resource_location {*/Identifier/*$}*/ sprite, int x, int y, int width, int height, Operation<Void> original) {
         if (!BundlesBeyond.isModEnabled()) {
             original.call(instance, /*? if =1.21.4 {*//*renderLayers*//*?} else {*/pipeline/*?}*/, sprite, x, y, width, height);
             return;

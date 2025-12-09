@@ -18,14 +18,14 @@ import net.minecraft.client.renderer.RenderPipelines;
 /*import net.minecraft.client.renderer.RenderType;
  *///?}
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources./*$ resource_location {*/Identifier/*$}*/;
 import net.minecraft.util.Mth;
 import o7410.bundlesbeyond.mixin.AbstractSliderButtonAccessor;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 public class BundlesBeyondConfigScreen extends Screen {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(BundlesBeyond.MOD_ID, "textures/gui/config.png");
+    private static final /*$ resource_location {*/Identifier/*$}*/ TEXTURE = /*$ resource_location {*/Identifier/*$}*/.fromNamespaceAndPath(BundlesBeyond.MOD_ID, "textures/gui/config.png");
     private static final int BACKGROUND_WIDTH = 222;
     private static final int BACKGROUND_HEIGHT = 148;
     private static final Component FAILED_TO_RELOAD_TEXT = Component.literal("Failed to reload").withStyle(ChatFormatting.RED);
@@ -208,7 +208,7 @@ public class BundlesBeyondConfigScreen extends Screen {
         }
     }
 
-    private class ScrollModeButton extends Button {
+    private class ScrollModeButton extends Button/*? if >=1.21.11 {*/.Plain/*?}*/ {
         public final ScrollMode scrollMode;
 
         public ScrollModeButton(ScrollMode scrollMode, int x, int y, int width, int height) {
@@ -222,7 +222,7 @@ public class BundlesBeyondConfigScreen extends Screen {
         }
     }
 
-    private class ModEnabledStateButton extends Button {
+    private class ModEnabledStateButton extends Button/*? if >=1.21.11 {*/.Plain/*?}*/ {
         public final ModEnabledState modEnabledState;
 
         public ModEnabledStateButton(ModEnabledState modEnabledState, int x, int y, int width, int height) {
@@ -241,7 +241,7 @@ public class BundlesBeyondConfigScreen extends Screen {
         private static final int MAX_VALUE = 24;
 
         public SlotSizeSlider(int x, int y, int width, int height, int slotSize) {
-            super(x, y, width, height, null, calculateValue(slotSize));
+            super(x, y, width, height, Component.empty(), calculateValue(slotSize));
             updateMessage();
         }
 

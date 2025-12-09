@@ -24,7 +24,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ServerboundSelectBundleItemPacket;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources./*$ resource_location {*/Identifier/*$}*/;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.function.Consumer;
 
@@ -39,11 +39,11 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
 
     //? if <1.21.10 {
     /*public static final String KEY_CATEGORY = Util.makeDescriptionId("category", ResourceLocation.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
-    *///?} else if fabric {
-    public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
-    //?} else if neoforge {
-    /*public static final KeyMapping.Category KEY_CATEGORY = new KeyMapping.Category(ResourceLocation.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
-    *///?}
+    *///?} else {
+    public static final KeyMapping.Category KEY_CATEGORY = /*? if fabric {*/KeyMapping.Category.register/*?} else {*//*new KeyMapping.Category*//*?}*/(
+            /*$ resource_location {*/Identifier/*$}*/.fromNamespaceAndPath(MOD_ID, "bundles_beyond")
+    );
+    //?}
 
     public static final KeyMapping SCROLL_AXIS_KEY = new KeyMapping(
             "key." + MOD_ID + ".scroll_axis",
