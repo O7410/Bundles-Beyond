@@ -30,10 +30,10 @@
 		}
 	],
 	"depends": {
-		"fabricloader": "${loader_range}",
+		"fabricloader": ">=0.18.3",
 		"minecraft": "${mc_range}",
 		"fabric-api": "${fabric_api_range}",
-        "java": ">=21"
+		"java": ">=21"
 	},
 	"suggests": {
 		"modmenu": "*"

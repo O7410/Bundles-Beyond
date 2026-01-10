@@ -90,7 +90,7 @@ stonecutter {
     }
 
     swaps {
-        put("resource_location", if (eval(current.version, "<=1.21.10")) "ResourceLocation" else "Identifier")
+        put("resource_location", if (current.parsed <= "1.21.10") "ResourceLocation" else "Identifier")
     }
 }
 
@@ -116,19 +116,14 @@ dependencies {
     if (env is EnvFabric) {
         modImplementation("net.fabricmc:fabric-loader:${env.fabricLoaderVersion.min}")
         modImplementation("net.fabricmc.fabric-api:fabric-api:${env.fabricApiVersion.min}")
-        // TODO return this back to normal when modmenu for 1.21.11 releases
-        if (env.mcVersion.min == "1.21.11") {
-            modCompileOnly("com.terraformersmc:modmenu:${env.modmenuVersion.min}")
-        } else {
-            modImplementation("com.terraformersmc:modmenu:${env.modmenuVersion.min}")
-        }
+        modImplementation("com.terraformersmc:modmenu:${env.modmenuVersion.min}")
     }
     if (env is EnvNeo) {
         "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion.min}")
     }
     mappings(loom.layered {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${env.mcVersion.min.takeUnless { it == "1.21.11" } ?: "1.21.10"}:${env.parchmentVersion}@zip")
+        parchment("org.parchmentmc.data:parchment-${env.mcVersion.min}:${env.parchmentVersion}@zip")
     })
 
     vineflowerDecompilerClasspath("org.vineflower:vineflower:1.11.2")
