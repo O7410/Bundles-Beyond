@@ -38,7 +38,7 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     //? if <1.21.10 {
-    /*public static final String KEY_CATEGORY = Util.makeDescriptionId("category", ResourceLocation.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
+    /*public static final String KEY_CATEGORY = Util.makeDescriptionId("key.category", ResourceLocation.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
     *///?} else {
     public static final KeyMapping.Category KEY_CATEGORY = /*? if fabric {*/KeyMapping.Category.register/*?} else {*//*new KeyMapping.Category*//*?}*/(
             /*$ resource_location {*/Identifier/*$}*/.fromNamespaceAndPath(MOD_ID, "bundles_beyond")
