@@ -22,7 +22,6 @@ public abstract class BundleItemMixin {
             @Local BundleContents bundleContentsComponent
     ) {
         if (!player.level().isClientSide()) return;
-        if (!BundlesBeyond.isModEnabled()) return;
         if (!bundleContentsComponent.hasSelectedItem()) return;
         int selectedIndex = bundleContentsComponent.getSelectedItem() + 1;
         builder.toggleSelectedItem(selectedIndex);
