@@ -26,7 +26,10 @@ public abstract class BundleMouseActionsMixin {
         if (!BundlesBeyond.isModEnabled() || config.scrollMode == ScrollMode.VANILLA || size <= 4) return original;
         int width = BundleTooltipAdditions.getModifiedBundleTooltipColumns(size);
         int height = BundleTooltipAdditions.getModifiedBundleTooltipRows(size, width);
-        boolean keyPressed = InputConstants.isKeyDown(this.minecraft.getWindow()/*? if <1.21.10 {*//*.getWindow()*//*?}*/, BundlesBeyond.getKeyCode(BundlesBeyond.SCROLL_AXIS_KEY));
+        boolean keyPressed = !BundlesBeyond.SCROLL_AXIS_KEY.isUnbound() && InputConstants.isKeyDown(
+                this.minecraft.getWindow()/*? if <1.21.10 {*//*.getWindow()*//*?}*/,
+                BundlesBeyond.getKeyCode(BundlesBeyond.SCROLL_AXIS_KEY)
+        );
         boolean isVertical = switch (config.scrollMode) {
             case HOLD_FOR_VERTICAL -> keyPressed;
             case HOLD_FOR_HORIZONTAL -> !keyPressed;

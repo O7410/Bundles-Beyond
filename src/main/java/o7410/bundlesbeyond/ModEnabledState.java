@@ -11,10 +11,12 @@ import net.minecraft.util.StringRepresentable;
 public enum ModEnabledState implements StringRepresentable {
     ON("On, press key to toggle", "on", "On", () -> true),
     OFF("Off, press key to toggle", "off", "Off", () -> false),
-    HOLD_KEY("Hold key to enable", "hold_key", "Hold key", () -> InputConstants.isKeyDown(
-            Minecraft.getInstance().getWindow()/*? if <1.21.10 {*//*.getWindow()*//*?}*/,
-            BundlesBeyond.getKeyCode(BundlesBeyond.MOD_ENABLED_KEY)
-    ));
+    HOLD_KEY("Hold key to enable", "hold_key", "Hold key", () ->
+            !BundlesBeyond.MOD_ENABLED_KEY.isUnbound() && InputConstants.isKeyDown(
+                    Minecraft.getInstance().getWindow()/*? if <1.21.10 {*//*.getWindow()*//*?}*/,
+                    BundlesBeyond.getKeyCode(BundlesBeyond.MOD_ENABLED_KEY)
+            )
+    );
 
     public static final Codec<ModEnabledState> CODEC = StringRepresentable.fromEnum(ModEnabledState::values);
 
