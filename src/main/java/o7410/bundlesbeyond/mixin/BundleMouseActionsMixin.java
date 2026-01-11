@@ -1,6 +1,7 @@
 package o7410.bundlesbeyond.mixin;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
@@ -20,10 +21,17 @@ public abstract class BundleMouseActionsMixin {
 
     @Shadow @Final private Minecraft minecraft;
 
-    @ModifyExpressionValue(method = "onMouseScrolled", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/ScrollWheelHandler;getNextScrollWheelSelection(DII)I"))
-    private int changeScrollBehavior(int original, @Local Vector2i scrollOffset, @Local(ordinal = 1) int size, @Local(ordinal = 2) int scrollAmount, @Local(ordinal = 3) int selectedIndex) {
+    @WrapOperation(method = "onMouseScrolled", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/ScrollWheelHandler;getNextScrollWheelSelection(DII)I"))
+    private int changeScrollBehavior(double scrollAmountDouble, int selectedIndex, int size, Operation<Integer> original, @Local Vector2i scrollOffset, @Local(ordinal = 2) int scrollAmount) {
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
-        if (!BundlesBeyond.isModEnabled() || config.scrollMode == ScrollMode.VANILLA || size <= 4) return original;
+        if (!BundlesBeyond.isModEnabled()) {
+            return original.call(scrollAmountDouble, selectedIndex, size);
+        }
+        if (config.reverseView) scrollAmountDouble = -scrollAmountDouble;
+        if (config.scrollMode == ScrollMode.VANILLA || size <= 4) {
+            return original.call(scrollAmountDouble, selectedIndex, size);
+        }
+
         int width = BundleTooltipAdditions.getModifiedBundleTooltipColumns(size);
         int height = BundleTooltipAdditions.getModifiedBundleTooltipRows(size, width);
         boolean keyPressed = !BundlesBeyond.SCROLL_AXIS_KEY.isUnbound() && InputConstants.isKeyDown(
@@ -37,12 +45,12 @@ public abstract class BundleMouseActionsMixin {
             case HORIZONTAL -> false;
             default -> throw new IllegalStateException();
         };
-        if (isVertical) {
-            return BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, -scrollAmount);
-        }
         if (scrollOffset.y == 0) {
             return BundleTooltipAdditions.offsetHorizontal(size, width, height, selectedIndex, -scrollAmount);
         }
-        return original;
+        if (isVertical) {
+            return BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, scrollAmount);
+        }
+        return original.call(scrollAmountDouble, selectedIndex, size);
     }
 }

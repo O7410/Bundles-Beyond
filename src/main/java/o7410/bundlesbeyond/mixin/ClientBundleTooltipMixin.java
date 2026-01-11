@@ -25,7 +25,7 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Mixin(ClientBundleTooltip.class)
 public abstract class ClientBundleTooltipMixin {
@@ -34,10 +34,10 @@ public abstract class ClientBundleTooltipMixin {
     @Unique private static final /*$ resource_location {*/Identifier/*$}*/ SLOT_HIGHLIGHT_FRONT_SPRITE = /*$ resource_location {*/Identifier/*$}*/.withDefaultNamespace("container/slot_highlight_front");
     @Shadow @Final private BundleContents contents;
 
-    @Inject(method = "slotCount", at = @At("HEAD"), cancellable = true)
-    private void changeNumberOfVisibleSlots(CallbackInfoReturnable<Integer> cir) {
-        if (!BundlesBeyond.isModEnabled()) return;
-        cir.setReturnValue(this.contents.size());
+    @ModifyConstant(method = "slotCount", constant = @Constant(intValue = 12))
+    private int changeMaxVisibleSlots(int constant) {
+        if (!BundlesBeyond.isModEnabled()) return constant;
+        return Integer.MAX_VALUE;
     }
 
     @ModifyVariable(method = "renderBundleWithItemsTooltip", at = @At("STORE"))
@@ -71,6 +71,19 @@ public abstract class ClientBundleTooltipMixin {
     private int modifySlotSize(int constant) {
         if (!BundlesBeyond.isModEnabled()) return constant;
         return BundlesBeyondConfig.instance().slotSize;
+    }
+
+    @ModifyArgs(
+            method = "renderBundleWithItemsTooltip",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientBundleTooltip;renderSlot(IIILjava/util/List;ILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V"
+            )
+    )
+    private void reverseItems(Args args, Font font, int x, int y, int width, int height, GuiGraphics guiGraphics, @Local(ordinal = 7) int rowIndexFromOne, @Local(ordinal = 8) int columnIndexFromOne) {
+        if (!BundlesBeyond.isModEnabled() || !BundlesBeyondConfig.instance().reverseView) return;
+        args.set(1, x + (columnIndexFromOne - 1) * BundlesBeyondConfig.instance().slotSize);
+        args.set(2, y + (rowIndexFromOne - 1) * BundlesBeyondConfig.instance().slotSize);
     }
 
     @ModifyConstant(method = "getContentXOffset", constant = @Constant(intValue = 96))

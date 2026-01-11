@@ -44,6 +44,10 @@ public class BundlesBeyondCommand {
                         .then(RequiredArgumentBuilder.<T, Integer>argument("size", IntegerArgumentType.integer(18))
                                 .suggests(BundlesBeyondCommand::getSlotSizeSuggestions)
                                 .executes(BundlesBeyondCommand::executeSetSlotSize)))
+                .then(LiteralArgumentBuilder.<T>literal("reverse_view")
+                        .executes(BundlesBeyondCommand::executeGetReverseView)
+                        .then(RequiredArgumentBuilder.<T, Boolean>argument("value", BoolArgumentType.bool())
+                                .executes(BundlesBeyondCommand::executeSetReverseView)))
                 .then(LiteralArgumentBuilder.<T>literal("container_slots")
                         .executes(BundlesBeyondCommand::executeGetContainerSlots)
                         .then(RequiredArgumentBuilder.<T, Boolean>argument("value", BoolArgumentType.bool())
@@ -160,6 +164,22 @@ public class BundlesBeyondCommand {
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         if (config.slotSize != slotSize) {
             config.slotSize = slotSize;
+            saveConfig(context);
+        }
+        return 0;
+    }
+
+    private static int executeGetReverseView(CommandContext<? extends SharedSuggestionProvider> context) {
+        sendFeedback(context, Component.literal("Reverse view is currently: " + (BundlesBeyondConfig.instance().reverseView ? "ON" : "OFF")));
+        return 0;
+    }
+
+    private static int executeSetReverseView(CommandContext<? extends SharedSuggestionProvider> context) {
+        boolean reverseView = BoolArgumentType.getBool(context, "value");
+        sendFeedback(context, Component.literal("Reverse view is now: " + (reverseView ? "ON" : "OFF")));
+        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
+        if (config.reverseView != reverseView) {
+            config.reverseView = reverseView;
             saveConfig(context);
         }
         return 0;

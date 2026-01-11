@@ -32,12 +32,35 @@ public class BundlesBeyondConfig {
             .setPrettyPrinting()
             .create();
 
+    private static final Codec<Integer> BUNDLE_SLOT_SIZE_CODEC = Codec.INT.comapFlatMap(
+            integer -> integer >= 18 && integer <= 24 ?
+                    DataResult.success(integer) :
+                    DataResult.error(() -> "slotSize must be between 18 and 24, found " + integer),
+            Function.identity()
+    );
+    private static final Codec<BundlesBeyondConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ScrollMode.CODEC.fieldOf("scrollMode").orElse(ScrollMode.VANILLA).forGetter(config -> config.scrollMode),
+            ModEnabledState.CODEC.fieldOf("modEnabledState").orElse(ModEnabledState.ON).forGetter(config -> config.modEnabledState),
+            BUNDLE_SLOT_SIZE_CODEC.fieldOf("slotSize").orElse(24).forGetter(config -> config.slotSize),
+            Codec.BOOL.fieldOf("containerSlots").orElse(false).forGetter(config -> config.containerSlots),
+            Codec.BOOL.fieldOf("reverseView").orElse(false).forGetter(config -> config.reverseView)
+    ).apply(instance, (scrollMode, modEnabledState, slotSize, containerSlots, reverseView) -> {
+        BundlesBeyondConfig config = new BundlesBeyondConfig();
+        config.scrollMode = scrollMode;
+        config.modEnabledState = modEnabledState;
+        config.slotSize = slotSize;
+        config.containerSlots = containerSlots;
+        config.reverseView = reverseView;
+        return config;
+    }));
+
     private static BundlesBeyondConfig instance = new BundlesBeyondConfig();
 
     public ScrollMode scrollMode = ScrollMode.VANILLA;
     public ModEnabledState modEnabledState = ModEnabledState.ON;
     public int slotSize = 24;
     public boolean containerSlots = true;
+    public boolean reverseView = true;
 
     public static BundlesBeyondConfig instance() {
         return instance;
@@ -91,26 +114,6 @@ public class BundlesBeyondConfig {
             return false;
         }
     }
-
-    private static final Codec<Integer> BUNDLE_SLOT_SIZE_CODEC = Codec.INT.comapFlatMap(
-            integer -> integer >= 18 && integer <= 24 ?
-                    DataResult.success(integer) :
-                    DataResult.error(() -> "slotSize must be between 18 and 24, found " + integer),
-            Function.identity()
-    );
-    private static final Codec<BundlesBeyondConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ScrollMode.CODEC.fieldOf("scrollMode").forGetter(config -> config.scrollMode),
-            ModEnabledState.CODEC.fieldOf("modEnabledState").forGetter(config -> config.modEnabledState),
-            BUNDLE_SLOT_SIZE_CODEC.fieldOf("slotSize").forGetter(config -> config.slotSize),
-            Codec.BOOL.fieldOf("containerSlots").orElse(false).forGetter(config -> config.containerSlots)
-    ).apply(instance, (scrollMode, modEnabledState, slotSize, containerSlots) -> {
-        BundlesBeyondConfig config = new BundlesBeyondConfig();
-        config.scrollMode = scrollMode;
-        config.modEnabledState = modEnabledState;
-        config.slotSize = slotSize;
-        config.containerSlots = containerSlots;
-        return config;
-    }));
 
     private static BundlesBeyondConfig fromJson(JsonObject jsonObject) {
         return CODEC.parse(JsonOps.INSTANCE, jsonObject).resultOrPartial(BundlesBeyond.LOGGER::error).orElse(null);

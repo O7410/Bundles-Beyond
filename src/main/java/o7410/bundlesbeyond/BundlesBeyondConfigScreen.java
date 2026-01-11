@@ -74,6 +74,14 @@ public class BundlesBeyondConfigScreen extends Screen {
                 (this.height - BACKGROUND_HEIGHT) / 2 + 5,
                 0xFFFFFFFF
         );
+        context.drawString(
+                this.font,
+                Component.literal("Made by 7410"),
+                (this.width + BACKGROUND_WIDTH) / 2 - this.font.width("Made by 7410") - 10,
+                (this.height + BACKGROUND_HEIGHT) / 2 - 40,
+                0xFFFFFFFF,
+                true
+        );
     }
 
     @Override
@@ -94,9 +102,23 @@ public class BundlesBeyondConfigScreen extends Screen {
                 new SlotSizeSlider((this.width - BACKGROUND_WIDTH) / 2 + 9, (this.height - BACKGROUND_HEIGHT) / 2 + 63,
                         204, 20, BundlesBeyondConfig.instance().slotSize));
 
+        addReverseViewButton();
         addContainerSlotsButton();
 
         updateButtons();
+    }
+
+    private void addReverseViewButton() {
+        Supplier<Component> labelSupplier = () -> Component.literal("Reverse View: " + (BundlesBeyondConfig.instance().reverseView ? "ON" : "OFF"));
+        Button.OnPress onPress = button -> {
+            BundlesBeyondConfig.instance().reverseView = !BundlesBeyondConfig.instance().reverseView;
+            button.setMessage(labelSupplier.get());
+            BundlesBeyondConfig.save();
+        };
+        this.addRenderableWidget(Button.builder(labelSupplier.get(), onPress)
+                .bounds((this.width - BACKGROUND_WIDTH) / 2 + 117, (this.height - BACKGROUND_HEIGHT) / 2 + 85, 96, 20)
+                .tooltip(Tooltip.create(Component.literal("Items start at top left, last items in the bottom right")))
+                .build());
     }
 
     private void addContainerSlotsButton() {

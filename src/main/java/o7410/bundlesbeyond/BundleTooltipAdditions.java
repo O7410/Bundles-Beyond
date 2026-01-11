@@ -85,14 +85,14 @@ public class BundleTooltipAdditions {
         int leftCode = BundlesBeyond.getKeyCode(gameOptions.keyLeft);
         int backCode = BundlesBeyond.getKeyCode(gameOptions.keyDown);
         int rightCode = BundlesBeyond.getKeyCode(gameOptions.keyRight);
-        if (keyCode == forwardCode || keyCode == GLFW.GLFW_KEY_UP) {
-            selectedIndex = BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, -1);
-        } else if (keyCode == leftCode || keyCode == GLFW.GLFW_KEY_LEFT) {
-            selectedIndex = BundleTooltipAdditions.offsetHorizontal(size, width, height, selectedIndex, -1);
-        } else if (keyCode == backCode || keyCode == GLFW.GLFW_KEY_DOWN) {
-            selectedIndex = BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, 1);
-        } else if (keyCode == rightCode || keyCode == GLFW.GLFW_KEY_RIGHT) {
-            selectedIndex = BundleTooltipAdditions.offsetHorizontal(size, width, height, selectedIndex, 1);
+        boolean isUp = keyCode == forwardCode || keyCode == GLFW.GLFW_KEY_UP;
+        boolean isDown = keyCode == backCode || keyCode == GLFW.GLFW_KEY_DOWN;
+        boolean isLeft = keyCode == leftCode || keyCode == GLFW.GLFW_KEY_LEFT;
+        boolean isRight = keyCode == rightCode || keyCode == GLFW.GLFW_KEY_RIGHT;
+        if (isUp || isDown) {
+            selectedIndex = BundleTooltipAdditions.offsetVertical(size, width, height, selectedIndex, isDown ? 1 : -1);
+        } else if (isLeft || isRight) {
+            selectedIndex = BundleTooltipAdditions.offsetHorizontal(size, width, height, selectedIndex, isRight ? 1 : -1);
         } else {
             return false;
         }
@@ -104,13 +104,15 @@ public class BundleTooltipAdditions {
     }
 
     public static int offsetVertical(int size, int width, int height, int selectedIndex, int offset) {
+        if (BundlesBeyondConfig.instance().reverseView) offset = -offset;
+        int defaultSelectedIndex = BundlesBeyondConfig.instance().reverseView ? size - 1 : 0;
 
         if (height == 1) {
-            return selectedIndex == -1 ? 0 : -1;
+            return selectedIndex == -1 ? defaultSelectedIndex : -1;
         }
 
         if (selectedIndex == -1) {
-            selectedIndex = 0;
+            selectedIndex = defaultSelectedIndex;
         }
 
         int emptySlotsAtTheStart = width * height - size;
@@ -142,9 +144,16 @@ public class BundleTooltipAdditions {
     }
 
     public static int offsetHorizontal(int size, int width, int height, int selectedIndex, int offset) {
-
         if (size == 1) {
-            return selectedIndex == 0 ? -1 : 0;
+            return selectedIndex == -1 ? 0 : -1;
+        }
+
+        if (BundlesBeyondConfig.instance().reverseView) {
+            if (selectedIndex == -1) {
+                selectedIndex = size - 1;
+                if (offset > 0) return selectedIndex;
+            }
+            offset = -offset;
         }
 
         int emptySlotsAtTheStart = width * height - size;
