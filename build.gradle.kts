@@ -179,8 +179,7 @@ tasks.processResources {
 }
 
 publishMods {
-    changelog = """
-    """.trimIndent()
+    changelog = property("changelog") as String
     type = STABLE
 
     file = tasks.remapJar.get().archiveFile
