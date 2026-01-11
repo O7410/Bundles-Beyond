@@ -91,6 +91,8 @@ stonecutter {
 
     swaps {
         put("resource_location", if (current.parsed <= "1.21.10") "ResourceLocation" else "Identifier")
+        put("pop_matrix", if (current.parsed >= "1.21.8") "popMatrix();" else "popPose();")
+        put("push_matrix", if (current.parsed >= "1.21.8") "pushMatrix();" else "pushPose();")
     }
 }
 

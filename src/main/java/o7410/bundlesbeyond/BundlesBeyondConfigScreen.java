@@ -1,5 +1,6 @@
 package o7410.bundlesbeyond;
 
+import com.google.common.base.Supplier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -90,10 +91,25 @@ public class BundlesBeyondConfigScreen extends Screen {
         addFailedTextWidgets();
 
         this.addRenderableWidget(
-                new SlotSizeSlider((this.width - BACKGROUND_WIDTH) / 2 + 9, (this.height - BACKGROUND_HEIGHT) / 2 + 85,
+                new SlotSizeSlider((this.width - BACKGROUND_WIDTH) / 2 + 9, (this.height - BACKGROUND_HEIGHT) / 2 + 63,
                         204, 20, BundlesBeyondConfig.instance().slotSize));
 
+        addContainerSlotsButton();
+
         updateButtons();
+    }
+
+    private void addContainerSlotsButton() {
+        Supplier<Component> labelSupplier = () -> Component.literal("Container Slots: " + (BundlesBeyondConfig.instance().containerSlots ? "ON" : "OFF"));
+        Button.OnPress onPress = button -> {
+            BundlesBeyondConfig.instance().containerSlots = !BundlesBeyondConfig.instance().containerSlots;
+            button.setMessage(labelSupplier.get());
+            BundlesBeyondConfig.save();
+        };
+        this.addRenderableWidget(Button.builder(labelSupplier.get(), onPress)
+                .bounds((this.width - BACKGROUND_WIDTH) / 2 + 9, (this.height - BACKGROUND_HEIGHT) / 2 + 85, 106, 20)
+                .tooltip(Tooltip.create(Component.literal("Changes the texture of the bundle slot to the texture of the vanilla slot from containers")))
+                .build());
     }
 
     private void addFailedTextWidgets() {
@@ -124,26 +140,26 @@ public class BundlesBeyondConfigScreen extends Screen {
 
     private void addScrollModeButtons() {
         int topY = (this.height - BACKGROUND_HEIGHT) / 2;
-        int centerX = this.width / 2;
+        int leftX = (this.width - BACKGROUND_WIDTH) / 2;
         ScrollModeButton scrollModeVanillaButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.VANILLA,
-                        centerX - 100 - 2, topY + 15, 204, 20));
+                        leftX + 9, topY + 15, 60, 20));
 
         ScrollModeButton scrollModeHorizontalButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.HORIZONTAL,
-                        centerX - 100 - 2, topY + 38, 100, 20));
+                        leftX + 71, topY + 15, 70, 20));
 
         ScrollModeButton scrollModeVerticalButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.VERTICAL,
-                        centerX + 2, topY + 38, 100, 20));
+                        leftX + 143, topY + 15, 70, 20));
 
         ScrollModeButton scrollModeHoldForHorizontalButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.HOLD_FOR_HORIZONTAL,
-                        centerX + 2, topY + 61, 100, 20));
+                        leftX + 112, topY + 38, 101, 20));
 
         ScrollModeButton scrollModeHoldForVerticalButton = this.addRenderableWidget(
                 new ScrollModeButton(ScrollMode.HOLD_FOR_VERTICAL,
-                        centerX - 100 - 2, topY + 61, 100, 20));
+                        leftX + 9, topY + 38, 101, 20));
 
         this.scrollModeButtons = new ScrollModeButton[] {
                 scrollModeVanillaButton,
@@ -242,6 +258,7 @@ public class BundlesBeyondConfigScreen extends Screen {
 
         public SlotSizeSlider(int x, int y, int width, int height, int slotSize) {
             super(x, y, width, height, Component.empty(), calculateValue(slotSize));
+            this.setTooltip(Tooltip.create(Component.literal("Makes the items in the bundle closer together")));
             updateMessage();
         }
 
@@ -256,7 +273,7 @@ public class BundlesBeyondConfigScreen extends Screen {
         @Override
         protected void updateMessage() {
             int slotSize = calculateSlotSize();
-            this.setMessage(Component.literal("Bundle Slot Size: " + slotSize + (slotSize == 24 ? " (Vanilla)" : "")));
+            this.setMessage(Component.literal("Slot Size: " + slotSize + (slotSize == 24 ? " (Vanilla)" : "")));
         }
 
         @Override

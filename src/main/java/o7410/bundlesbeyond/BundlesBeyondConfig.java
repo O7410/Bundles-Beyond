@@ -37,6 +37,7 @@ public class BundlesBeyondConfig {
     public ScrollMode scrollMode = ScrollMode.VANILLA;
     public ModEnabledState modEnabledState = ModEnabledState.ON;
     public int slotSize = 24;
+    public boolean containerSlots = true;
 
     public static BundlesBeyondConfig instance() {
         return instance;
@@ -100,12 +101,14 @@ public class BundlesBeyondConfig {
     private static final Codec<BundlesBeyondConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ScrollMode.CODEC.fieldOf("scrollMode").forGetter(config -> config.scrollMode),
             ModEnabledState.CODEC.fieldOf("modEnabledState").forGetter(config -> config.modEnabledState),
-            BUNDLE_SLOT_SIZE_CODEC.fieldOf("slotSize").forGetter(config -> config.slotSize)
-    ).apply(instance, (scrollMode, modEnabledState, slotSize) -> {
+            BUNDLE_SLOT_SIZE_CODEC.fieldOf("slotSize").forGetter(config -> config.slotSize),
+            Codec.BOOL.fieldOf("containerSlots").orElse(false).forGetter(config -> config.containerSlots)
+    ).apply(instance, (scrollMode, modEnabledState, slotSize, containerSlots) -> {
         BundlesBeyondConfig config = new BundlesBeyondConfig();
         config.scrollMode = scrollMode;
         config.modEnabledState = modEnabledState;
         config.slotSize = slotSize;
+        config.containerSlots = containerSlots;
         return config;
     }));
 

@@ -1,6 +1,7 @@
 package o7410.bundlesbeyond;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -43,6 +44,10 @@ public class BundlesBeyondCommand {
                         .then(RequiredArgumentBuilder.<T, Integer>argument("size", IntegerArgumentType.integer(18))
                                 .suggests(BundlesBeyondCommand::getSlotSizeSuggestions)
                                 .executes(BundlesBeyondCommand::executeSetSlotSize)))
+                .then(LiteralArgumentBuilder.<T>literal("container_slots")
+                        .executes(BundlesBeyondCommand::executeGetContainerSlots)
+                        .then(RequiredArgumentBuilder.<T, Boolean>argument("value", BoolArgumentType.bool())
+                                .executes(BundlesBeyondCommand::executeSetContainerSlots)))
                 .then(LiteralArgumentBuilder.<T>literal("reloadconfig")
                         .executes(BundlesBeyondCommand::executeReloadConfig))
         );
@@ -73,6 +78,12 @@ public class BundlesBeyondCommand {
         }
     }
 
+    private static void saveConfig(CommandContext<? extends SharedSuggestionProvider> context) {
+        if (!BundlesBeyondConfig.save()) {
+            sendError(context, Component.literal("Failed to save Bundles Beyond config"));
+        }
+    }
+
     private static int configScreen(CommandContext<? extends SharedSuggestionProvider> context) {
         Minecraft client = Minecraft.getInstance();
         //? if >=1.21.10 {
@@ -100,13 +111,11 @@ public class BundlesBeyondCommand {
 
     private static int executeSetModEnabledState(CommandContext<? extends SharedSuggestionProvider> context) {
         ModEnabledState newModEnabledState = context.getArgument("state", ModEnabledState.class);
-        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         sendFeedback(context, Component.literal("Bundles Beyond enabled state is now: ").append(newModEnabledState.getShortNameComponent()));
+        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         if (config.modEnabledState != newModEnabledState) {
             config.modEnabledState = newModEnabledState;
-            if (!BundlesBeyondConfig.save()) {
-                sendError(context, Component.literal("Failed to save Bundles Beyond config"));
-            }
+            saveConfig(context);
         }
         return 0;
     }
@@ -129,9 +138,7 @@ public class BundlesBeyondCommand {
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         if (config.scrollMode != newMode) {
             config.scrollMode = newMode;
-            if (!BundlesBeyondConfig.save()) {
-                sendError(context, Component.literal("Failed to save Bundles Beyond config"));
-            }
+            saveConfig(context);
         }
         return 0;
     }
@@ -153,9 +160,23 @@ public class BundlesBeyondCommand {
         BundlesBeyondConfig config = BundlesBeyondConfig.instance();
         if (config.slotSize != slotSize) {
             config.slotSize = slotSize;
-            if (!BundlesBeyondConfig.save()) {
-                sendError(context, Component.literal("Failed to save Bundles Beyond config"));
-            }
+            saveConfig(context);
+        }
+        return 0;
+    }
+
+    public static int executeGetContainerSlots(CommandContext<? extends SharedSuggestionProvider> context) {
+        sendFeedback(context, Component.literal("Container slots are currently: " + (BundlesBeyondConfig.instance().containerSlots ? "ON" : "OFF")));
+        return 0;
+    }
+
+    private static int executeSetContainerSlots(CommandContext<? extends SharedSuggestionProvider> context) {
+        boolean containerSlots = BoolArgumentType.getBool(context, "value");
+        sendFeedback(context, Component.literal("Container slots are now: " + (containerSlots ? "ON" : "OFF")));
+        BundlesBeyondConfig config = BundlesBeyondConfig.instance();
+        if (config.containerSlots != containerSlots) {
+            config.containerSlots = containerSlots;
+            saveConfig(context);
         }
         return 0;
     }
