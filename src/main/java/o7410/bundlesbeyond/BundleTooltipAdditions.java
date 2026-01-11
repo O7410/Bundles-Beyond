@@ -37,16 +37,6 @@ public class BundleTooltipAdditions {
             return true;
         }
 
-        if (!BundlesBeyond.isModEnabled()) return false;
-
-        if ((config.scrollMode == ScrollMode.HORIZONTAL || config.scrollMode == ScrollMode.VERTICAL) &&
-                keyCode == BundlesBeyond.getKeyCode(BundlesBeyond.SCROLL_AXIS_KEY)) {
-            config.scrollMode = config.scrollMode == ScrollMode.HORIZONTAL ? ScrollMode.VERTICAL : ScrollMode.HORIZONTAL;
-            BundlesBeyondConfig.save();
-            player.displayClientMessage(Component.literal("Now scrolling " + (config.scrollMode == ScrollMode.HORIZONTAL ? "horizontally" : "vertically")), true);
-            return true;
-        }
-
         if (keyCode == GLFW.GLFW_KEY_SPACE) {
             if (client.screen instanceof AbstractContainerScreen<?> handledScreen) {
                 AbstractContainerMenu currentScreenHandler = player.containerMenu;
@@ -55,6 +45,8 @@ public class BundleTooltipAdditions {
             }
             return true;
         }
+
+        if (!BundlesBeyond.isModEnabled()) return false;
 
         switch (keyCode) {
             case GLFW.GLFW_KEY_EQUAL, GLFW.GLFW_KEY_KP_ADD -> {
@@ -73,6 +65,14 @@ public class BundleTooltipAdditions {
                     BundlesBeyondConfig.save();
                 }
             }
+        }
+
+        if ((config.scrollMode == ScrollMode.HORIZONTAL || config.scrollMode == ScrollMode.VERTICAL) &&
+                keyCode == BundlesBeyond.getKeyCode(BundlesBeyond.SCROLL_AXIS_KEY)) {
+            config.scrollMode = config.scrollMode == ScrollMode.HORIZONTAL ? ScrollMode.VERTICAL : ScrollMode.HORIZONTAL;
+            BundlesBeyondConfig.save();
+            player.displayClientMessage(Component.literal("Now scrolling " + (config.scrollMode == ScrollMode.HORIZONTAL ? "horizontally" : "vertically")), true);
+            return true;
         }
 
         int selectedIndex = BundleItem.getSelectedItem(stack);
