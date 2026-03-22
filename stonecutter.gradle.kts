@@ -3,3 +3,7 @@ plugins {
     id("dev.architectury.loom") version "1.13-SNAPSHOT" apply false
 }
 stonecutter active "1.21.11-fabric"
+
+subprojects {
+    extra["loom.platform"] = project.name.split('-').last()
+}

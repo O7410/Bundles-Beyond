@@ -20,7 +20,7 @@ config="${mixins_file}"
 
 [[dependencies.${mod_id}]]
 modId="neoforge"
-versionRange="${neoforge_range}"
+versionRange="[${api},)"
 
 [[dependencies.${mod_id}]]
 modId="minecraft"

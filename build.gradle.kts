@@ -10,58 +10,41 @@ repositories {
     maven("https://maven.terraformersmc.com/") { name = "Terraformers" }
 }
 
-class VersionRange(val min: String, val max: String) {
-    fun asNeoforge(): String {
-        if (min == max) return "[$min]"
-        val closer = if (max.isEmpty()) ")" else "]"
-        return "[$min,$max$closer"
+val (mcVersion, loader) = stonecutter.current.project.split('-', limit = 2)
+
+stonecutter {
+    constants {
+        put("fabric", loader == "fabric")
+        put("neoforge", loader == "neoforge")
     }
 
-    fun asFabric(): String {
-        if (min == max) return min
-        return ">=$min" + if (max.isNotEmpty()) " <=$max" else ""
+    swaps {
+        put("resource_location", if (current.parsed <= "1.21.10") "ResourceLocation" else "Identifier")
+        put("pop_matrix", if (current.parsed >= "1.21.8") "popMatrix();" else "popPose();")
+        put("push_matrix", if (current.parsed >= "1.21.8") "pushMatrix();" else "pushPose();")
     }
+
+    properties.tags(mcVersion, loader)
 }
 
-/**
- * Creates a VersionRange from a property
- */
-fun versionProperty(key: String): VersionRange {
-    val str = property(key) as String
-    val list = str.split(" ")
-    return when (list.size) {
-        1 -> VersionRange(list[0], "")
-        2 -> VersionRange(list[0], list[1])
-        else -> throw GradleException("Invalid version range: $str")
-    }
-}
-
-/**
- * Stores core dependency and environment information.
- */
 sealed class Env {
-    val archivesBaseName = property("archives_base_name").toString()
-    val mcVersion = versionProperty("deps.core.mc")
-    val loader = property("loom.platform") as String
-    val parchmentVersion = property("deps.core.parchment") as String
+    val maxMcVersion = findProperty("max_mc_version") as String?
 }
 
 class EnvFabric : Env() {
-    val fabricLoaderVersion = versionProperty("deps.core.fabric")
-    val fabricApiVersion = versionProperty("deps.api.fabric_api")
-    val modmenuVersion = versionProperty("deps.api.modmenu")
+    val fabricLoader = property("fabric_loader") as String
+    val fabricApi = property("fabric_api") as String
+    val modmenu = property("modmenu") as String
 }
 
 class EnvNeo : Env() {
-    val neoforgeVersion = versionProperty("deps.core.neoforge")
+    val neoforgeVersion = property("neoforge") as String
 }
 
-val env = property("loom.platform").let { loader ->
-    when (loader) {
-        "fabric" -> EnvFabric()
-        "neoforge" -> EnvNeo()
-        else -> throw GradleException("Unsupported loader: $loader")
-    }
+val env = when (loader) {
+    "fabric" -> EnvFabric()
+    "neoforge" -> EnvNeo()
+    else -> throw GradleException("Unsupported loader: $loader")
 }
 
 class ModProperties {
@@ -80,21 +63,8 @@ class ModProperties {
 
 val mod = ModProperties()
 
-version = "${mod.version}+${env.mcVersion.min}+${env.loader}"
+version = "${mod.version}+${mcVersion}+${loader}"
 group = property("maven_group").toString()
-
-stonecutter {
-    constants {
-        put("fabric", env is EnvFabric)
-        put("neoforge", env is EnvNeo)
-    }
-
-    swaps {
-        put("resource_location", if (current.parsed <= "1.21.10") "ResourceLocation" else "Identifier")
-        put("pop_matrix", if (current.parsed >= "1.21.8") "popMatrix();" else "popPose();")
-        put("push_matrix", if (current.parsed >= "1.21.8") "pushMatrix();" else "pushPose();")
-    }
-}
 
 loom {
     decompilers {
@@ -110,23 +80,33 @@ loom {
     }
 }
 
-base.archivesName = env.archivesBaseName
+
+base.archivesName = property("archives_base_name") as String
 
 dependencies {
-    minecraft("com.mojang:minecraft:${env.mcVersion.min}")
+    minecraft("com.mojang:minecraft:${mcVersion}")
 
+    fun modImplementation(dependencyNotation: String) {
+        if (stonecutter.current.parsed <= "1.21.11") {
+            this.modImplementation(dependencyNotation)
+        } else {
+            this.implementation(dependencyNotation)
+        }
+    }
     if (env is EnvFabric) {
-        modImplementation("net.fabricmc:fabric-loader:${env.fabricLoaderVersion.min}")
-        modImplementation("net.fabricmc.fabric-api:fabric-api:${env.fabricApiVersion.min}")
-        modImplementation("com.terraformersmc:modmenu:${env.modmenuVersion.min}")
+        modImplementation("net.fabricmc:fabric-loader:${env.fabricLoader}")
+        modImplementation("net.fabricmc.fabric-api:fabric-api:${env.fabricApi}")
+        modImplementation("com.terraformersmc:modmenu:${env.modmenu}")
     }
     if (env is EnvNeo) {
-        "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion.min}")
+        "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion}")
     }
-    mappings(loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${env.mcVersion.min}:${env.parchmentVersion}@zip")
-    })
+    if (stonecutter.current.parsed <= "1.21.11") {
+        mappings(loom.layered {
+            officialMojangMappings()
+            parchment("org.parchmentmc.data:parchment-${mcVersion}:${property("parchment")}@zip")
+        })
+    }
 
     vineflowerDecompilerClasspath("org.vineflower:vineflower:1.11.2")
 }
@@ -147,21 +127,29 @@ tasks.processResources {
         "source_url" to mod.sourceUrl,
         "website" to mod.homepage,
         "icon" to mod.icon,
-        "mc_ver" to env.mcVersion.min,
+        "mc_ver" to mcVersion,
         "mc_range" to when (env) {
-            is EnvFabric -> env.mcVersion.asFabric()
-            is EnvNeo -> env.mcVersion.asNeoforge()
+            is EnvFabric -> when (env.maxMcVersion) {
+                null -> mcVersion
+                "" -> ">=$mcVersion"
+                else -> ">=$mcVersion <=${env.maxMcVersion}"
+            }
+            is EnvNeo -> when (env.maxMcVersion) {
+                null -> "[$mcVersion]"
+                "" -> "$[$mcVersion,)"
+                else -> "[$mcVersion,${env.maxMcVersion}]"
+            }
         },
         "issue_tracker" to mod.issueTracker,
-        "loader_range" to when (env) {
-            is EnvFabric -> env.fabricLoaderVersion.asFabric()
-            is EnvNeo -> env.neoforgeVersion.asNeoforge()
+        "loader" to when (env) {
+            is EnvFabric -> env.fabricLoader
+            is EnvNeo -> env.neoforgeVersion
         },
-        when (env) {
-            is EnvFabric -> "fabric_api_range" to env.fabricApiVersion.asFabric()
-            is EnvNeo -> "neoforge_range" to env.neoforgeVersion.asNeoforge()
+        "api" to when (env) {
+            is EnvFabric -> env.fabricApi
+            is EnvNeo -> env.neoforgeVersion
         },
-        "loader_name" to env.loader,
+        "loader_name" to loader,
         "license" to mod.license,
         "mixins_file" to mod.mixinsFile
     )
@@ -194,8 +182,8 @@ publishMods {
         projectId = "VhUy58Cq"
         displayName = "Bundles Beyond ${version.get()}"
         minecraftVersionRange {
-            start = env.mcVersion.min
-            end = env.mcVersion.max.ifEmpty { env.mcVersion.min }
+            start = mcVersion
+            end = env.maxMcVersion ?: mcVersion
         }
 
         if (env is EnvFabric) {

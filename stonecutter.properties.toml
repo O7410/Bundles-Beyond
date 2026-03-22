@@ -1,0 +1,56 @@
+["1.21.3"]
+parchment = "2024.12.07"
+
+["1.21.4"]
+parchment = "2025.03.23"
+max_mc_version = "1.21.5"
+
+["1.21.8"]
+parchment = "2025.09.14"
+
+["1.21.10"]
+parchment = "2025.10.12"
+
+["1.21.11"]
+parchment = "2025.12.20"
+max_mc_version = ""
+
+# NEOFORGE
+["1.21.3-neoforge"]
+neoforge = "21.3.95"
+
+["1.21.4-neoforge"]
+neoforge = "21.4.156"
+
+["1.21.8-neoforge"]
+neoforge = "21.8.52"
+
+["1.21.10-neoforge"]
+neoforge = "21.10.64"
+
+["1.21.11-neoforge"]
+neoforge = "21.11.38-beta"
+
+# FABRIC
+["fabric"]
+fabric_loader = "0.18.4"
+
+["1.21.3-fabric"]
+fabric_api = "0.114.1+1.21.3"
+modmenu = "12.0.0"
+
+["1.21.4-fabric"]
+fabric_api = "0.119.4+1.21.4"
+modmenu = "13.0.3"
+
+["1.21.8-fabric"]
+fabric_api = "0.136.1+1.21.8"
+modmenu = "15.0.1"
+
+["1.21.10-fabric"]
+fabric_api = "0.138.4+1.21.10"
+modmenu = "16.0.0"
+
+["1.21.11-fabric"]
+fabric_api = "0.141.3+1.21.11"
+modmenu = "17.0.0-beta.2"

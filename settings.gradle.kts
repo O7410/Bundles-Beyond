@@ -9,7 +9,7 @@ pluginManagement {
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.8.2"
+    id("dev.kikugie.stonecutter") version "0.9"
 }
 
 val versions = listOf("1.21.3", "1.21.4", "1.21.8", "1.21.10", "1.21.11")
