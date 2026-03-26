@@ -22,8 +22,13 @@ public abstract class BundleItemMixin {
             @Local BundleContents bundleContentsComponent
     ) {
         if (!player.level().isClientSide()) return;
+        //? if >=26.1 {
+        /*if (bundleContentsComponent.getSelectedItemIndex() == BundleContents.NO_SELECTED_ITEM_INDEX) return;
+        int selectedIndex = bundleContentsComponent.getSelectedItemIndex() + 1;
+        *///?} else {
         if (!bundleContentsComponent.hasSelectedItem()) return;
         int selectedIndex = bundleContentsComponent.getSelectedItem() + 1;
+        //?}
         builder.toggleSelectedItem(selectedIndex);
         BundlesBeyond.sendBundleSelectedPacket(slot.index, selectedIndex);
     }

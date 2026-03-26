@@ -3,7 +3,11 @@ package o7410.bundlesbeyond;
 //? if fabric {
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+//? if >=26.1 {
+/*import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+*///?} else {
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+//?}
 //?}
 //? if neoforge {
 /*import net.neoforged.api.distmarker.Dist;
@@ -60,6 +64,10 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
         return BundlesBeyondConfig.instance().modEnabledState.isEnabled();
     }
 
+    // Used by static mixin handlers in 26.1+ that can't access instance fields.
+    // Set from instance context before static methods are called.
+    public static int lastBundleSize = 0;
+
     //? if fabric {
     @Override
     public void onInitializeClient() {
@@ -69,7 +77,11 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
         BundlesBeyondConfig.load();
 
         //? if fabric {
+        //? if >=26.1 {
+        /*registerKeybinds(KeyMappingHelper::registerKeyMapping);
+        *///?} else {
         registerKeybinds(KeyBindingHelper::registerKeyBinding);
+        //?}
         ClientCommandRegistrationCallback.EVENT.register(BundlesBeyondCommand::registerCommand);
         //?}
 
@@ -102,7 +114,11 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
 
     public static int getKeyCode(KeyMapping keyBinding) {
         //? if fabric {
+        //? if >=26.1 {
+        /*return KeyMappingHelper.getBoundKeyOf(keyBinding).getValue();
+        *///?} else {
         return KeyBindingHelper.getBoundKeyOf(keyBinding).getValue();
+        //?}
         //?} else {
         /*return keyBinding.getKey().getValue();
         *///?}
