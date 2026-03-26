@@ -10,7 +10,11 @@ import java.util.function.Function;
 *///?}
 import net.minecraft.resources./*$ resource_location {*/Identifier/*$}*/;
 import net.minecraft.client.gui.Font;
+//? if >=26.1 {
+/*import net.minecraft.client.gui.GuiGraphicsExtractor;
+*///?} else {
 import net.minecraft.client.gui.GuiGraphics;
+//?}
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientBundleTooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.component.BundleContents;
@@ -34,25 +38,44 @@ public abstract class ClientBundleTooltipMixin {
     @Unique private static final /*$ resource_location {*/Identifier/*$}*/ SLOT_HIGHLIGHT_FRONT_SPRITE = /*$ resource_location {*/Identifier/*$}*/.withDefaultNamespace("container/slot_highlight_front");
     @Shadow @Final private BundleContents contents;
 
+    //? if >=26.1 {
+    /*@Inject(method = "extractBundleWithItemsTooltip", at = @At("HEAD"))
+    private void captureBundleSize(CallbackInfo ci) {
+        BundlesBeyond.lastBundleSize = this.contents.size();
+    }
+    *///?}
+
     @ModifyConstant(method = "slotCount", constant = @Constant(intValue = 12))
     private int changeMaxVisibleSlots(int constant) {
         if (!BundlesBeyond.isModEnabled()) return constant;
         return Integer.MAX_VALUE;
     }
 
+    //? if >=26.1 {
+    /*@ModifyVariable(method = "extractBundleWithItemsTooltip", at = @At("STORE"))
+    *///?} else {
     @ModifyVariable(method = "renderBundleWithItemsTooltip", at = @At("STORE"))
+    //?}
     private boolean changeIfToDrawExtraItemsCount(boolean original) {
         if (!BundlesBeyond.isModEnabled()) return original;
         return false;
     }
 
     @ModifyConstant(
+            //? if >=26.1 {
+            /*method = "extractBundleWithItemsTooltip",
+            *///?} else {
             method = "renderBundleWithItemsTooltip",
+            //?}
             constant = @Constant(intValue = 4),
             slice = @Slice(
                     to = @At(
                             value = "INVOKE",
+                            //? if >=26.1 {
+                            /*target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientBundleTooltip;extractSelectedItemTooltip(Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphicsExtractor;III)V"
+                            *///?} else {
                             target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientBundleTooltip;drawSelectedItemTooltip(Lnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;III)V"
+                            //?}
                     )
             )
     )
@@ -61,36 +84,65 @@ public abstract class ClientBundleTooltipMixin {
         return BundleTooltipAdditions.getModifiedBundleTooltipColumns(this.contents.size());
     }
 
+    //? if >=26.1 {
+    /*@ModifyConstant(method = "extractBundleWithItemsTooltip", constant = @Constant(intValue = 96))
+    *///?} else {
     @ModifyConstant(method = "renderBundleWithItemsTooltip", constant = @Constant(intValue = 96))
+    //?}
     private int modifyRightAlignmentForItems(int constant) {
         if (!BundlesBeyond.isModEnabled()) return constant;
         return BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(this.contents.size());
     }
 
+    //? if >=26.1 {
+    /*@ModifyConstant(method = "extractBundleWithItemsTooltip", constant = @Constant(intValue = 24))
+    *///?} else {
     @ModifyConstant(method = "renderBundleWithItemsTooltip", constant = @Constant(intValue = 24))
+    //?}
     private int modifySlotSize(int constant) {
         if (!BundlesBeyond.isModEnabled()) return constant;
         return BundlesBeyondConfig.instance().slotSize;
     }
 
     @ModifyArgs(
+            //? if >=26.1 {
+            /*method = "extractBundleWithItemsTooltip",
+            *///?} else {
             method = "renderBundleWithItemsTooltip",
+            //?}
             at = @At(
                     value = "INVOKE",
+                    //? if >=26.1 {
+                    /*target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientBundleTooltip;extractSlot(IIILjava/util/List;ILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphicsExtractor;)V"
+                    *///?} else {
                     target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientBundleTooltip;renderSlot(IIILjava/util/List;ILnet/minecraft/client/gui/Font;Lnet/minecraft/client/gui/GuiGraphics;)V"
+                    //?}
             )
     )
-    private void reverseItems(Args args, Font font, int x, int y, int width, int height, GuiGraphics guiGraphics, @Local(ordinal = 7) int rowIndexFromOne, @Local(ordinal = 8) int columnIndexFromOne) {
+    //? if >=26.1 {
+    /*private void reverseItems(Args args, Font font, int x, int y, int width, int height, GuiGraphicsExtractor guiGraphics, Fraction fraction, @Local(ordinal = 7) int rowIndexFromOne, @Local(ordinal = 8) int columnIndexFromOne) {
+    *///?} else {
+    private void reverseItems(Args args, Font font, int x, int y, int width, int height, /*$ gui_graphics {*/GuiGraphics/*$}*/ guiGraphics, @Local(ordinal = 7) int rowIndexFromOne, @Local(ordinal = 8) int columnIndexFromOne) {
+    //?}
         if (!BundlesBeyond.isModEnabled() || !BundlesBeyondConfig.instance().reverseView) return;
         args.set(1, x + (columnIndexFromOne - 1) * BundlesBeyondConfig.instance().slotSize);
         args.set(2, y + (rowIndexFromOne - 1) * BundlesBeyondConfig.instance().slotSize);
     }
 
+    //? if >=26.1 {
+    /*@WrapOperation(method = "extractBundleWithItemsTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientBundleTooltip;getContentXOffset(I)I"))
+    private int modfiyXMargin(int width, Operation<Integer> original) {
+        if (!BundlesBeyond.isModEnabled() || this.contents.isEmpty()) return original.call(width);
+        int modifiedWidth = BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(this.contents.size());
+        return (width - modifiedWidth) / 2;
+    }
+    *///?} else {
     @ModifyConstant(method = "getContentXOffset", constant = @Constant(intValue = 96))
     private int modfiyXMargin(int constant) {
         if (!BundlesBeyond.isModEnabled() || this.contents.isEmpty()) return constant;
         return BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(this.contents.size());
     }
+    //?}
 
     @ModifyConstant(method = "getWidth", constant = @Constant(intValue = 96))
     private int changeTooltipWidth(int constant) {
@@ -98,11 +150,19 @@ public abstract class ClientBundleTooltipMixin {
         return BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(this.contents.size());
     }
 
+    //? if <26.1 {
     @ModifyConstant(method = "getProgressBarFill", constant = @Constant(intValue = 94))
     private int changeProgressBarFill(int constant) {
         if (!BundlesBeyond.isModEnabled() || this.contents.isEmpty()) return constant;
         return BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(this.contents.size()) - 2;
     }
+    //?} else {
+    /*@ModifyConstant(method = "getProgressBarFill", constant = @Constant(intValue = 94))
+    private static int changeProgressBarFill(int constant) {
+        if (!BundlesBeyond.isModEnabled()) return constant;
+        return BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(BundlesBeyond.lastBundleSize) - 2;
+    }
+    *///?}
 
     @ModifyConstant(method = "gridSizeY", constant = @Constant(intValue = 4))
     private int modifyItemsPerRow(int constant) {
@@ -110,20 +170,50 @@ public abstract class ClientBundleTooltipMixin {
         return BundleTooltipAdditions.getModifiedBundleTooltipColumns(this.contents.size());
     }
 
+    //? if >=26.1 {
+    /*@ModifyConstant(method = "extractProgressbar", constant = @Constant(intValue = 96))
+    private static int changeProgressBorderWidth(int constant) {
+        if (!BundlesBeyond.isModEnabled()) return constant;
+        return BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(BundlesBeyond.lastBundleSize);
+    }
+    *///?} else {
     @ModifyConstant(method = "drawProgressbar", constant = @Constant(intValue = 96))
     private int changeProgressBorderWidth(int constant) {
         if (!BundlesBeyond.isModEnabled() || this.contents.isEmpty()) return constant;
         return BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(this.contents.size());
     }
+    //?}
 
+    //? if >=26.1 {
+    /*@ModifyConstant(method = "extractProgressbar", constant = @Constant(intValue = 48))
+    private static int removeVanillaProgressBarTextOffset(int constant) {
+        if (!BundlesBeyond.isModEnabled()) return constant;
+        return 0;
+    }
+    *///?} else {
     @ModifyConstant(method = "drawProgressbar", constant = @Constant(intValue = 48))
     private int removeVanillaProgressBarTextOffset(int constant) {
         if (!BundlesBeyond.isModEnabled() || this.contents.isEmpty()) return constant;
         return 0;
     }
+    //?}
 
+    //? if >=26.1 {
+    /*@WrapOperation(method = "extractProgressbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;centeredText(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V"))
+    private static void fractionalOffsetProgressBarText(GuiGraphicsExtractor instance, Font textRenderer, Component text, int centerX, int y, int color, Operation<Void> original) {
+        if (!BundlesBeyond.isModEnabled()) {
+            original.call(instance, textRenderer, text, centerX, y, color);
+            return;
+        }
+        instance.pose().pushMatrix();
+        float offset = BundleTooltipAdditions.getModifiedBundleTooltipColumnsPixels(BundlesBeyond.lastBundleSize) / 2f;
+        instance.pose().translate(offset, 0);
+        original.call(instance, textRenderer, text, centerX, y, color);
+        instance.pose().popMatrix();
+    }
+    *///?} else {
     @WrapOperation(method = "drawProgressbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawCenteredString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V"))
-    private void fractionalOffsetProgressBarText(GuiGraphics instance, Font textRenderer, Component text, int centerX, int y, int color, Operation<Void> original) {
+    private void fractionalOffsetProgressBarText(/*$ gui_graphics {*/GuiGraphics/*$}*/ instance, Font textRenderer, Component text, int centerX, int y, int color, Operation<Void> original) {
         if (!BundlesBeyond.isModEnabled() || this.contents.isEmpty()) {
             original.call(instance, textRenderer, text, centerX, y, color);
             return;
@@ -134,12 +224,21 @@ public abstract class ClientBundleTooltipMixin {
         original.call(instance, textRenderer, text, centerX, y, color);
         instance.pose()./*$ pop_matrix {*/popMatrix();/*$}*/
     }
+    //?}
 
+    //? if <26.1 {
     @ModifyReturnValue(method = "getProgressBarFillText", at = @At("TAIL"))
     private Component modifyProgressBarLabel(Component original) {
         if (!BundlesBeyond.isModEnabled()) return original;
         return Component.literal(contents.weight().multiplyBy(Fraction.getFraction(64, 1)).getNumerator() + "/64");
     }
+    //?} else {
+    /*@ModifyReturnValue(method = "getProgressBarFillText", at = @At("TAIL"))
+    private static Component modifyProgressBarLabel(Component original, Fraction weight) {
+        if (!BundlesBeyond.isModEnabled()) return original;
+        return Component.literal(weight.multiplyBy(Fraction.getFraction(64, 1)).getNumerator() + "/64");
+    }
+    *///?}
 
     @ModifyConstant(method = "itemGridHeight", constant = @Constant(intValue = 24))
     private int changeRowHeight(int constant) {
@@ -147,7 +246,11 @@ public abstract class ClientBundleTooltipMixin {
         return BundlesBeyondConfig.instance().slotSize;
     }
 
+    //? if >=26.1 {
+    /*@ModifyConstant(method = "extractSlot", constant = @Constant(intValue = 24))
+    *///?} else {
     @ModifyConstant(method = "renderSlot", constant = @Constant(intValue = 24))
+    //?}
     private int modifySlotTextureSize(int constant) {
         if (!BundlesBeyond.isModEnabled()) return constant;
         //? if =1.21.3 {
@@ -158,7 +261,9 @@ public abstract class ClientBundleTooltipMixin {
         //?}
     }
 
-    //? if >=1.21.11 {
+    //? if >=26.1 {
+    /*@WrapOperation(method = "extractSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V"))
+    *///?} else if >=1.21.11 {
     @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V"))
     //?} else if >=1.21.8 {
     /*@WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V"))
@@ -166,7 +271,7 @@ public abstract class ClientBundleTooltipMixin {
     /*@WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Ljava/util/function/Function;Lnet/minecraft/resources/ResourceLocation;IIII)V"))
     *///?}
     //? if >=1.21.4 {
-    private void fractionalSlotOffset(GuiGraphics instance, /*? if >=1.21.8 {*/RenderPipeline/*?} else {*//*Function<ResourceLocation, RenderType>*//*?}*/ render,
+    private void fractionalSlotOffset(/*$ gui_graphics {*/GuiGraphics/*$}*/ instance, /*? if >=1.21.8 {*/RenderPipeline/*?} else {*//*Function<ResourceLocation, RenderType>*//*?}*/ render,
                                       /*$ resource_location {*/Identifier/*$}*/ sprite, int x, int y, int width, int height, Operation<Void> original) {
         if (!BundlesBeyond.isModEnabled() || BundlesBeyondConfig.instance().containerSlots) {
             original.call(instance, render, sprite, x, y, width, height);
@@ -180,35 +285,55 @@ public abstract class ClientBundleTooltipMixin {
     }
     //?}
 
+    //? if >=26.1 {
+    /*@Inject(method = "extractSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;item(Lnet/minecraft/world/item/ItemStack;III)V"))
+    *///?} else {
     @Inject(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderItem(Lnet/minecraft/world/item/ItemStack;III)V"))
-    private void fractionalItemOffset(CallbackInfo ci, @Local(argsOnly = true) GuiGraphics guiGraphics) {
+    //?}
+    private void fractionalItemOffset(CallbackInfo ci, @Local(argsOnly = true) /*$ gui_graphics {*/GuiGraphics/*$}*/ guiGraphics) {
         if (!BundlesBeyond.isModEnabled()) return;
         guiGraphics.pose()./*$ push_matrix {*/pushMatrix();/*$}*/
         float offset = (BundlesBeyondConfig.instance().slotSize - 16) / 2f;
         guiGraphics.pose().translate(offset, offset/*? if <1.21.8 {*//*, 0*//*?}*/);
     }
 
+    //? if >=26.1 {
+    /*@ModifyConstant(method = "extractSlot", constant = @Constant(intValue = 4))
+    *///?} else {
     @ModifyConstant(method = "renderSlot", constant = @Constant(intValue = 4))
+    //?}
     private int removeVanillaItemOffset(int constant) {
         if (!BundlesBeyond.isModEnabled()) return constant;
         return 0;
     }
 
     @Inject(
+            //? if >=26.1 {
+            /*method = "extractSlot",
+            *///?} else {
             method = "renderSlot",
+            //?}
             at = @At(
                     value = "INVOKE",
+                    //? if >=26.1 {
+                    /*target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;itemDecorations(Lnet/minecraft/client/gui/Font;Lnet/minecraft/world/item/ItemStack;II)V",
+                    *///?} else {
                     target = "Lnet/minecraft/client/gui/GuiGraphics;renderItemDecorations(Lnet/minecraft/client/gui/Font;Lnet/minecraft/world/item/ItemStack;II)V",
+                    //?}
                     shift = At.Shift.AFTER
             )
     )
-    private void resetItemOffset(CallbackInfo ci, @Local(argsOnly = true) GuiGraphics guiGraphics) {
+    private void resetItemOffset(CallbackInfo ci, @Local(argsOnly = true) /*$ gui_graphics {*/GuiGraphics/*$}*/ guiGraphics) {
         if (!BundlesBeyond.isModEnabled()) return;
         guiGraphics.pose()./*$ pop_matrix {*/popMatrix();/*$}*/
     }
 
     @ModifyExpressionValue(
+            //? if >=26.1 {
+            /*method = "extractSlot",
+            *///?} else {
             method = "renderSlot",
+            //?}
             at = @At(
                     value = "FIELD",
                     //? if >=1.21.11 {
@@ -225,10 +350,16 @@ public abstract class ClientBundleTooltipMixin {
     }
 
     @WrapOperation(
+            //? if >=26.1 {
+            /*method = "extractSlot",
+            *///?} else {
             method = "renderSlot",
+            //?}
             at = @At(
                     value = "INVOKE",
-                    //? if >=1.21.11 {
+                    //? if >=26.1 {
+                    /*target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V",
+                    *///?} else if >=1.21.11 {
                     target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V",
                     //?} else if >=1.21.8 {
                     /*target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
@@ -238,7 +369,7 @@ public abstract class ClientBundleTooltipMixin {
                     ordinal = 0
             )
     )
-    private void changeSlotHighlightBack(GuiGraphics instance, /*? if >=1.21.8 {*/RenderPipeline/*?} else {*//*Function<ResourceLocation, RenderType>*//*?}*/ render,
+    private void changeSlotHighlightBack(/*$ gui_graphics {*/GuiGraphics/*$}*/ instance, /*? if >=1.21.8 {*/RenderPipeline/*?} else {*//*Function<ResourceLocation, RenderType>*//*?}*/ render,
                                          /*$ resource_location {*/Identifier/*$}*/ sprite, int x, int y, int width, int height, Operation<Void> original) {
         if (!BundlesBeyond.isModEnabled() || !BundlesBeyondConfig.instance().containerSlots) {
             original.call(instance, render, sprite, x, y, width, height);
@@ -249,10 +380,16 @@ public abstract class ClientBundleTooltipMixin {
     }
 
     @WrapOperation(
+            //? if >=26.1 {
+            /*method = "extractSlot",
+            *///?} else {
             method = "renderSlot",
+            //?}
             at = @At(
                     value = "INVOKE",
-                    //? if >=1.21.11 {
+                    //? if >=26.1 {
+                    /*target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V",
+                    *///?} else if >=1.21.11 {
                     target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V",
                     //?} else if >=1.21.8 {
                     /*target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V",
@@ -262,7 +399,7 @@ public abstract class ClientBundleTooltipMixin {
                     ordinal = 2
             )
     )
-    private void changeSlotHighlightFront(GuiGraphics instance, /*? if >=1.21.8 {*/RenderPipeline/*?} else {*//*Function<ResourceLocation, RenderType>*//*?}*/ render,
+    private void changeSlotHighlightFront(/*$ gui_graphics {*/GuiGraphics/*$}*/ instance, /*? if >=1.21.8 {*/RenderPipeline/*?} else {*//*Function<ResourceLocation, RenderType>*//*?}*/ render,
                                           /*$ resource_location {*/Identifier/*$}*/ sprite, int x, int y, int width, int height, Operation<Void> original) {
         if (!BundlesBeyond.isModEnabled() || !BundlesBeyondConfig.instance().containerSlots) {
             original.call(instance, render, sprite, x, y, width, height);
@@ -272,13 +409,13 @@ public abstract class ClientBundleTooltipMixin {
     }
 
     @Unique
-    private static void bundlesbeyond$renderHighlight(GuiGraphics instance, /*? if >=1.21.8 {*/RenderPipeline/*?} else {*//*Function<ResourceLocation, RenderType>*//*?}*/ render,
+    private static void bundlesbeyond$renderHighlight(/*$ gui_graphics {*/GuiGraphics/*$}*/ instance, /*? if >=1.21.8 {*/RenderPipeline/*?} else {*//*Function<ResourceLocation, RenderType>*//*?}*/ render,
                                                       /*$ resource_location {*/Identifier/*$}*/ sprite, int x, int y, Operation<Void> original) {
         float offset = BundlesBeyondConfig.instance().slotSize / 6f;
         instance.pose()./*$ push_matrix {*/pushMatrix();/*$}*/
         instance.pose().translate(x - offset, y - offset/*? if <1.21.8 {*//*, 0*//*?}*/);
         float scaleFactor = BundlesBeyondConfig.instance().slotSize / 18f;
-        instance.pose().scale(scaleFactor/*? if <1.21.8 {*//*, scaleFactor, scaleFactor*//*?}*/);
+        instance.pose()./*$ scale_2d {*/scale(scaleFactor);/*$}*/
         original.call(instance, render, sprite, 0, 0, 24, 24);
         instance.pose()./*$ pop_matrix {*/popMatrix();/*$}*/
     }

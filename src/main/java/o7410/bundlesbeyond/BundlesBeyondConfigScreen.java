@@ -2,7 +2,11 @@ package o7410.bundlesbeyond;
 
 import com.google.common.base.Supplier;
 import net.minecraft.ChatFormatting;
+//? if >=26.1 {
+/*import net.minecraft.client.gui.GuiGraphicsExtractor;
+*///?} else {
 import net.minecraft.client.gui.GuiGraphics;
+//?}
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
@@ -44,8 +48,13 @@ public class BundlesBeyondConfigScreen extends Screen {
     }
 
     @Override
+    //? if >=26.1 {
+    /*public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractBackground(context, mouseX, mouseY, delta);
+    *///?} else {
     public void renderBackground(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.renderBackground(context, mouseX, mouseY, delta);
+    //?}
 
         context.blit(
                 //? if >=1.21.8 {
@@ -60,27 +69,27 @@ public class BundlesBeyondConfigScreen extends Screen {
                 BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
                 256, 256
         );
-        context.drawString(
+        context./*? if >=26.1 {*//*text*//*?} else {*/drawString/*?}*/(
                 this.font,
                 "Mod Enabled State",
                 (this.width - BACKGROUND_WIDTH) / 2 + 9,
                 (this.height + BACKGROUND_HEIGHT) / 2 - 40,
                 0xFFFFFFFF
         );
-        context.drawCenteredString(
+        context./*? if >=26.1 {*//*centeredText*//*?} else {*/drawCenteredString/*?}*/(
                 this.font,
                 "Scroll Mode",
                 this.width / 2,
                 (this.height - BACKGROUND_HEIGHT) / 2 + 5,
                 0xFFFFFFFF
         );
-        context.drawString(
+        context./*? if >=26.1 {*//*text*//*?} else {*/drawString/*?}*/(
                 this.font,
                 Component.literal("Made by 7410"),
                 (this.width + BACKGROUND_WIDTH) / 2 - this.font.width("Made by 7410") - 10,
                 (this.height + BACKGROUND_HEIGHT) / 2 - 40,
-                0xFFFFFFFF,
-                true
+                0xFFFFFFFF/*? if <26.1 {*/,
+                true/*?}*/
         );
     }
 

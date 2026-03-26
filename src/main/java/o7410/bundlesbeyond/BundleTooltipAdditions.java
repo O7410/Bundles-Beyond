@@ -7,7 +7,11 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+//? if >=26.1 {
+/*import net.minecraft.world.inventory.ContainerInput;
+*///?} else {
 import net.minecraft.world.inventory.ClickType;
+//?}
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.ItemStack;
@@ -25,8 +29,16 @@ public class BundleTooltipAdditions {
         if (config.modEnabledState != ModEnabledState.HOLD_KEY && keyCode == BundlesBeyond.getKeyCode(BundlesBeyond.MOD_ENABLED_KEY)) {
             config.modEnabledState = config.modEnabledState == ModEnabledState.ON ? ModEnabledState.OFF : ModEnabledState.ON;
             BundlesBeyondConfig.save();
+            //? if >=26.1 {
+            /*player.sendOverlayMessage(Component.literal("Bundles Beyond " + (config.modEnabledState == ModEnabledState.ON ? "enabled" : "disabled")));
+            *///?} else {
             player.displayClientMessage(Component.literal("Bundles Beyond " + (config.modEnabledState == ModEnabledState.ON ? "enabled" : "disabled")), true);
+            //?}
+            //? if >=26.1 {
+            /*int selectedIndex = BundleItem.getSelectedItemIndex(stack);
+            *///?} else {
             int selectedIndex = BundleItem.getSelectedItem(stack);
+            //?}
             if (config.modEnabledState == ModEnabledState.ON) return true;
             int shownStacksWhenDisabled = BundleItem.getNumberOfItemsToShow(stack);
             if (selectedIndex >= shownStacksWhenDisabled) {
@@ -41,7 +53,7 @@ public class BundleTooltipAdditions {
             if (client.screen instanceof AbstractContainerScreen<?> handledScreen) {
                 AbstractContainerMenu currentScreenHandler = player.containerMenu;
                 int button = currentScreenHandler.getCarried().isEmpty() ? 1 : 0; // right : left
-                ((AbstractContainerScreenAccessor) handledScreen).callSlotClicked(slot, slot.index, button, ClickType.PICKUP);
+                ((AbstractContainerScreenAccessor) handledScreen).callSlotClicked(slot, slot.index, button, /*? if >=26.1 {*//*ContainerInput.PICKUP*//*?} else {*/ClickType.PICKUP/*?}*/);
             }
             return true;
         }
@@ -53,7 +65,7 @@ public class BundleTooltipAdditions {
                 if (config.slotSize < 24) {
                     config.slotSize++;
                     String message = "Slot size is now: " + config.slotSize + (config.slotSize == 24 ? " (Vanilla)" : "");
-                    player.displayClientMessage(Component.literal(message), true);
+                    player./*? if >=26.1 {*//*sendOverlayMessage*//*?} else {*/displayClientMessage/*?}*/(Component.literal(message)/*? if <26.1 {*/, true/*?}*/);
                     BundlesBeyondConfig.save();
                 }
             }
@@ -61,7 +73,7 @@ public class BundleTooltipAdditions {
                 if (config.slotSize > 18) {
                     config.slotSize--;
                     String message = "Slot size is now: " + config.slotSize + (config.slotSize == 24 ? " (Vanilla)" : "");
-                    player.displayClientMessage(Component.literal(message), true);
+                    player./*? if >=26.1 {*//*sendOverlayMessage*//*?} else {*/displayClientMessage/*?}*/(Component.literal(message)/*? if <26.1 {*/, true/*?}*/);
                     BundlesBeyondConfig.save();
                 }
             }
@@ -71,11 +83,15 @@ public class BundleTooltipAdditions {
                 keyCode == BundlesBeyond.getKeyCode(BundlesBeyond.SCROLL_AXIS_KEY)) {
             config.scrollMode = config.scrollMode == ScrollMode.HORIZONTAL ? ScrollMode.VERTICAL : ScrollMode.HORIZONTAL;
             BundlesBeyondConfig.save();
-            player.displayClientMessage(Component.literal("Now scrolling " + (config.scrollMode == ScrollMode.HORIZONTAL ? "horizontally" : "vertically")), true);
+            player./*? if >=26.1 {*//*sendOverlayMessage*//*?} else {*/displayClientMessage/*?}*/(Component.literal("Now scrolling " + (config.scrollMode == ScrollMode.HORIZONTAL ? "horizontally" : "vertically"))/*? if <26.1 {*/, true/*?}*/);
             return true;
         }
 
+        //? if >=26.1 {
+        /*int selectedIndex = BundleItem.getSelectedItemIndex(stack);
+        *///?} else {
         int selectedIndex = BundleItem.getSelectedItem(stack);
+        //?}
         int size = BundleItem.getNumberOfItemsToShow(stack);
         if (size == 0) return false;
         int width = BundleTooltipAdditions.getModifiedBundleTooltipColumns(size);
