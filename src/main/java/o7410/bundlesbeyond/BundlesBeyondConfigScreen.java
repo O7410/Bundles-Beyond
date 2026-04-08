@@ -2,11 +2,7 @@ package o7410.bundlesbeyond;
 
 import com.google.common.base.Supplier;
 import net.minecraft.ChatFormatting;
-//? if >=26.1 {
-/*import net.minecraft.client.gui.GuiGraphicsExtractor;
-*///?} else {
-import net.minecraft.client.gui.GuiGraphics;
-//?}
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
@@ -23,14 +19,14 @@ import net.minecraft.client.renderer.RenderPipelines;
 /*import net.minecraft.client.renderer.RenderType;
  *///?}
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources./*$ resource_location {*/Identifier/*$}*/;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import o7410.bundlesbeyond.mixin.AbstractSliderButtonAccessor;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 public class BundlesBeyondConfigScreen extends Screen {
-    private static final /*$ resource_location {*/Identifier/*$}*/ TEXTURE = /*$ resource_location {*/Identifier/*$}*/.fromNamespaceAndPath(BundlesBeyond.MOD_ID, "textures/gui/config.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(BundlesBeyond.MOD_ID, "textures/gui/config.png");
     private static final int BACKGROUND_WIDTH = 222;
     private static final int BACKGROUND_HEIGHT = 148;
     private static final Component FAILED_TO_RELOAD_TEXT = Component.literal("Failed to reload").withStyle(ChatFormatting.RED);
@@ -48,13 +44,10 @@ public class BundlesBeyondConfigScreen extends Screen {
     }
 
     @Override
-    //? if >=26.1 {
-    /*public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+    //~ if >=26.1 render -> extract
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        //~ if >=26.1 render -> extract
         super.extractBackground(context, mouseX, mouseY, delta);
-    *///?} else {
-    public void renderBackground(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.renderBackground(context, mouseX, mouseY, delta);
-    //?}
 
         context.blit(
                 //? if >=1.21.8 {
@@ -69,27 +62,29 @@ public class BundlesBeyondConfigScreen extends Screen {
                 BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
                 256, 256
         );
-        context./*? if >=26.1 {*//*text*//*?} else {*/drawString/*?}*/(
+        //~ if >=26.1 '.drawString' -> '.text'
+        context.text(
                 this.font,
                 "Mod Enabled State",
                 (this.width - BACKGROUND_WIDTH) / 2 + 9,
                 (this.height + BACKGROUND_HEIGHT) / 2 - 40,
                 0xFFFFFFFF
         );
-        context./*? if >=26.1 {*//*centeredText*//*?} else {*/drawCenteredString/*?}*/(
+        //~ if >=26.1 drawCenteredString -> centeredText
+        context.centeredText(
                 this.font,
                 "Scroll Mode",
                 this.width / 2,
                 (this.height - BACKGROUND_HEIGHT) / 2 + 5,
                 0xFFFFFFFF
         );
-        context./*? if >=26.1 {*//*text*//*?} else {*/drawString/*?}*/(
+        //~ if >=26.1 '.drawString' -> '.text'
+        context.text(
                 this.font,
                 Component.literal("Made by 7410"),
                 (this.width + BACKGROUND_WIDTH) / 2 - this.font.width("Made by 7410") - 10,
                 (this.height + BACKGROUND_HEIGHT) / 2 - 40,
-                0xFFFFFFFF/*? if <26.1 {*/,
-                true/*?}*/
+                0xFFFFFFFF
         );
     }
 

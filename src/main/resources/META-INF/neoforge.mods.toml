@@ -1,6 +1,3 @@
-modLoader="javafml"
-loaderVersion="[1,)" # javafml version, not neoforge version
-
 license="${license}"
 issueTrackerURL="${issue_tracker}"
 
@@ -20,7 +17,6 @@ config="${mixins_file}"
 
 [[dependencies.${mod_id}]]
 modId="neoforge"
-versionRange="[${api},)"
 
 [[dependencies.${mod_id}]]
 modId="minecraft"

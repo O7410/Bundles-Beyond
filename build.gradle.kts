@@ -1,12 +1,9 @@
-import java.io.ByteArrayInputStream
-import java.net.URI
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
+import me.modmuss50.mpp.MinecraftApi
+import org.gradle.jvm.tasks.Jar
 
 plugins {
     `maven-publish`
-    id("dev.architectury.loom")
+    id("loom-plugin-chooser")
     id("me.modmuss50.mod-publish-plugin") version "1.1.0"
 }
 
@@ -17,6 +14,7 @@ repositories {
 }
 
 val (mcVersion, loader) = stonecutter.current.project.split('-', limit = 2)
+val obfuscated = stonecutter.current.parsed <= "1.21.11"
 
 stonecutter {
     constants {
@@ -25,29 +23,42 @@ stonecutter {
     }
 
     swaps {
-        put("resource_location", if (current.parsed <= "1.21.10") "ResourceLocation" else "Identifier")
-        put("pop_matrix", if (current.parsed >= "1.21.8") "popMatrix();" else "popPose();")
-        put("push_matrix", if (current.parsed >= "1.21.8") "pushMatrix();" else "pushPose();")
-        // 26.1 rendering refactor: GuiGraphics → GuiGraphicsExtractor
-        put("gui_graphics", if (current.parsed >= "26.1") "GuiGraphicsExtractor" else "GuiGraphics")
-        put("scale_2d", if (current.parsed >= "26.1") "scale(scaleFactor, scaleFactor);" else if (current.parsed >= "1.21.8") "scale(scaleFactor);" else "scale(scaleFactor, scaleFactor, scaleFactor);")
+        put("display_actionbar", if (current.parsed >= "26.1") "player.sendOverlayMessage($1);" else "player.displayClientMessage($1, true);")
+        put("size", if (current.parsed >= "26.1") "int size = lastBundleSize;" else "int size = this.contents.size();")
+        put("translate", if (current.parsed >= "1.21.8") "$1.pose().translate($2, $3);" else "$1.pose().translate($2, $3, 0);")
     }
 
-    properties.tags(mcVersion, loader)
+    replacements {
+        string(current.parsed >= "1.21.8") {
+            replace("popPose", "popMatrix")
+            replace("pushPose", "pushMatrix")
+            replace("java/util/function/Function", "com/mojang/blaze3d/pipeline/RenderPipeline")
+            replace("Function<ResourceLocation, RenderType> ", "RenderPipeline ")
+        }
+
+        string(current.parsed >= "1.21.11") {
+            replace("ResourceLocation", "Identifier")
+        }
+
+        string(current.parsed >= "26.1") {
+            replace("GuiGraphics", "GuiGraphicsExtractor")
+            replace("ClickType", "ContainerInput")
+        }
+    }
 }
 
 sealed class Env {
-    val maxMcVersion = findProperty("max_mc_version") as String?
+    val mcRange = property("mc_version_range.$mcVersion") as String
 }
 
 class EnvFabric : Env() {
     val fabricLoader = property("fabric_loader") as String
-    val fabricApi = property("fabric_api") as String
-    val modmenu = property("modmenu") as String
+    val fabricApi = property("fabric_api.$mcVersion") as String
+    val modmenu = property("modmenu.$mcVersion") as String
 }
 
 class EnvNeo : Env() {
-    val neoforgeVersion = property("neoforge") as String
+    val neoforgeVersion = property("neoforge.$mcVersion") as String
 }
 
 val env = when (loader) {
@@ -62,212 +73,18 @@ class ModProperties {
     val version = property("mod.version") as String
     val description = property("mod.description") as String
     val authors = property("mod.authors") as String
-    val icon = "assets/$id/${property("mod.icon")!!}"
+    val icon = "assets/$id/${property("mod.icon") as String}"
     val issueTracker = property("mod.issue_tracker") as String
     val license = property("mod.license") as String
     val sourceUrl = property("mod.source_url") as String
-    val homepage = "mod.homepage".let { if (hasProperty(it)) property(it) as String else sourceUrl }
-    val mixinsFile = "${id}.mixins.json"
+    val homepage = property("mod.homepage") as String
+    val mixinsFile = "$id.mixins.json"
 }
 
 val mod = ModProperties()
 
-version = "${mod.version}+${mcVersion}+${loader}"
+version = "${mod.version}+$mcVersion+$loader"
 group = property("maven_group").toString()
-
-
-// MC 26.1+ is unobfuscated. Fabric's intermediary POM has version 0.0.0 causing
-// Gradle metadata mismatch. Generate a local identity intermediary with correct
-// POM version and v2 format.
-if (stonecutter.current.parsed >= "26.1") {
-    val localMaven = rootDir.resolve(".gradle/local-maven")
-    val intermediaryDir = localMaven.resolve("net/fabricmc/intermediary/${mcVersion}")
-    val pomFile = intermediaryDir.resolve("intermediary-${mcVersion}.pom")
-    val jarFile = intermediaryDir.resolve("intermediary-${mcVersion}-v2.jar")
-    if (!jarFile.exists()) {
-        intermediaryDir.mkdirs()
-        pomFile.writeText("""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-              <modelVersion>4.0.0</modelVersion>
-              <groupId>net.fabricmc</groupId>
-              <artifactId>intermediary</artifactId>
-              <version>${mcVersion}</version>
-            </project>
-        """.trimIndent())
-        val tinyContent = "tiny\t2\t0\tofficial\tintermediary\n".toByteArray()
-        ZipOutputStream(jarFile.outputStream()).use { zip ->
-            zip.putNextEntry(ZipEntry("mappings/mappings.tiny"))
-            zip.write(tinyContent)
-            zip.closeEntry()
-        }
-    }
-    repositories {
-        maven(localMaven) {
-            name = "LocalIntermediary"
-            content {
-                includeModule("net.fabricmc", "intermediary")
-            }
-        }
-    }
-}
-
-// Architectury Loom doesn't support NeoForm spec 6 (26.1+) which changed the
-// config.json format (classpath arrays instead of version strings, no mappings).
-// Provide a patched NeoForm ZIP that converts spec 6 back to spec 4 format.
-if (stonecutter.current.parsed >= "26.1" && env is EnvNeo) {
-    val localMaven = rootDir.resolve(".gradle/local-maven")
-    val neoformVersion = "$mcVersion-1"
-    val neoformDir = localMaven.resolve("net/neoforged/neoform/$neoformVersion")
-    val patchedZip = neoformDir.resolve("neoform-$neoformVersion.zip")
-
-    if (!patchedZip.exists()) {
-        neoformDir.mkdirs()
-        val neoformUrl = URI("https://maven.neoforged.net/releases/net/neoforged/neoform/$neoformVersion/neoform-$neoformVersion.zip").toURL()
-        val originalBytes = neoformUrl.readBytes()
-
-        val entries = linkedMapOf<String, ByteArray>()
-        ZipInputStream(ByteArrayInputStream(originalBytes)).use { zis ->
-            var entry = zis.nextEntry
-            while (entry != null) {
-                entries[entry.name] = if (entry.isDirectory) ByteArray(0) else zis.readBytes()
-                entry = zis.nextEntry
-            }
-        }
-
-        val json = com.google.gson.JsonParser.parseString(String(entries["config.json"]!!)).asJsonObject
-        // Add missing data.mappings (identity mapping) and mark as official (unobfuscated)
-        json.getAsJsonObject("data").addProperty("mappings", "config/joined.tsrg")
-        json.addProperty("official", true)
-        // Convert functions from spec 6 (classpath array) to spec 4 (version string)
-        val functions = json.getAsJsonObject("functions")
-        for (key in functions.keySet()) {
-            val func = functions.getAsJsonObject(key)
-            if (func.has("classpath") && !func.has("version")) {
-                val classpath = func.getAsJsonArray("classpath")
-                if (classpath.size() > 0) {
-                    func.addProperty("version", classpath[0].asString)
-                }
-                func.remove("classpath")
-            }
-            func.remove("java_version")
-            // Ensure 'repo' exists (spec 4 reads it without null check)
-            if (!func.has("repo")) {
-                func.addProperty("repo", "https://maven.neoforged.net/releases/")
-            }
-        }
-        entries["config.json"] = com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(json).toByteArray()
-        entries["config/joined.tsrg"] = "tsrg2 left right\n".toByteArray()
-
-        // Rename preProcessJar step to "rename" (Loom enqueues "rename" step by name)
-        val joinedSteps = json.getAsJsonObject("steps").getAsJsonArray("joined")
-        for (i in 0 until joinedSteps.size()) {
-            val step = joinedSteps[i].asJsonObject
-            if (step.get("type").asString == "preProcessJar") {
-                step.addProperty("name", "rename")
-            }
-        }
-        entries["config.json"] = com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(json).toByteArray()
-
-        ZipOutputStream(patchedZip.outputStream()).use { zos ->
-            for ((name, bytes) in entries) {
-                zos.putNextEntry(ZipEntry(name))
-                if (bytes.isNotEmpty()) zos.write(bytes)
-                zos.closeEntry()
-            }
-        }
-        neoformDir.resolve("neoform-$neoformVersion.pom").writeText("""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-              <modelVersion>4.0.0</modelVersion>
-              <groupId>net.neoforged</groupId>
-              <artifactId>neoform</artifactId>
-              <version>$neoformVersion</version>
-            </project>
-        """.trimIndent())
-    }
-
-    repositories {
-        exclusiveContent {
-            forRepository {
-                maven(localMaven) { name = "LocalNeoForm" }
-            }
-            filter {
-                includeModule("net.neoforged", "neoform")
-            }
-        }
-    }
-
-    // Loom's AT tool bundles ASM 9.7 which doesn't support Java 25 (class version 69).
-    // Use component metadata rules to upgrade ASM dependencies in the AT tool.
-    dependencies {
-        components {
-            withModule("net.neoforged.accesstransformers:at-cli") {
-                allVariants {
-                    withDependencies {
-                        removeAll { it.group == "org.ow2.asm" }
-                        add("org.ow2.asm:asm:9.9.1")
-                        add("org.ow2.asm:asm-tree:9.9.1")
-                        add("org.ow2.asm:asm-commons:9.9.1")
-                    }
-                }
-            }
-            withModule("net.neoforged:accesstransformers") {
-                allVariants {
-                    withDependencies {
-                        removeAll { it.group == "org.ow2.asm" }
-                        add("org.ow2.asm:asm:9.9.1")
-                        add("org.ow2.asm:asm-tree:9.9.1")
-                        add("org.ow2.asm:asm-commons:9.9.1")
-                    }
-                }
-            }
-        }
-    }
-    // Also force ASM version via resolution strategy for configs that pick it up
-    configurations.all {
-        resolutionStrategy.eachDependency {
-            if (requested.group == "org.ow2.asm") {
-                useVersion("9.9.1")
-            }
-        }
-    }
-
-    // MC 26.1 has no Mojang mappings (unobfuscated). Loom's NeoForge pipeline
-    // unconditionally calls mergeMojang() which throws "Failed to find official
-    // mojang mappings". Fix by pre-creating a valid mappings-mojang.tiny (identity
-    // mapping with extra "mojang" namespace) and cleaning stale lock files so that
-    // refreshDeps stays false and mergeMojang is never invoked.
-    // NOTE: After a clean Loom cache the first build will fail because the mapping
-    // directory has not been created yet. Run the build a second time.
-    run {
-        val loomCacheDir = file("${gradle.gradleUserHomeDir}/caches/fabric-loom")
-        // Delete stale lock files that force refreshDeps=true (disowned or dead PID)
-        loomCacheDir.listFiles()?.filter {
-            it.name.endsWith(".lock") && it.isFile
-        }?.forEach {
-            val content = it.readText().trim()
-            val isStale = content == "disowned" || content.toLongOrNull()?.let { pid ->
-                ProcessHandle.of(pid).isEmpty
-            } ?: false
-            if (isStale) it.delete()
-        }
-        // Fix mappings-mojang.tiny in the mapping directory for this version
-        val versionCacheDir = loomCacheDir.resolve(mcv)
-        if (versionCacheDir.isDirectory) {
-            versionCacheDir.listFiles()?.filter {
-                it.isDirectory && it.name.startsWith("loom.mappings.") && it.name.contains("neoforge")
-            }?.forEach { mappingDir ->
-                val mojangTiny = mappingDir.resolve("mappings-mojang.tiny")
-                val baseTiny = mappingDir.resolve("mappings-base.tiny")
-                if (baseTiny.exists() && (!mojangTiny.exists() || mojangTiny.length() == 0L)) {
-                    // NeoForge remapper expects "official" as the src namespace
-                    mojangTiny.writeText("tiny\t2\t0\tofficial\tintermediary\tnamed\tmojang\n")
-                }
-            }
-        }
-    }
-}
 
 loom {
     decompilers {
@@ -288,28 +105,19 @@ base.archivesName = property("archives_base_name") as String
 dependencies {
     minecraft("com.mojang:minecraft:${mcVersion}")
 
-    fun modImplementation(dependencyNotation: String) {
-        if (stonecutter.current.parsed >= "26.1") {
-            this.modImplementation(dependencyNotation)
-        } else {
-            this.implementation(dependencyNotation)
-        }
-    }
     if (env is EnvFabric) {
-        this.modImplementation("net.fabricmc:fabric-loader:${env.fabricLoader}")
+        modImplementation("net.fabricmc:fabric-loader:${env.fabricLoader}")
         modImplementation("net.fabricmc.fabric-api:fabric-api:${env.fabricApi}")
         modImplementation("com.terraformersmc:modmenu:${env.modmenu}")
     }
     if (env is EnvNeo) {
         "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion}")
     }
-    if (stonecutter.current.parsed <= "1.21.11") {
+    if (obfuscated) {
         mappings(loom.layered {
             officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-${mcVersion}:${property("parchment")}@zip")
+            parchment("org.parchmentmc.data:parchment-${mcVersion}:${property("parchment.$mcVersion")}@zip")
         })
-    } else {
-        mappings(loom.layered { })
     }
 
     vineflowerDecompilerClasspath("org.vineflower:vineflower:1.11.2")
@@ -334,49 +142,71 @@ tasks.processResources {
         "icon" to mod.icon,
         "mc_ver" to mcVersion,
         "mc_range" to when (env) {
-            is EnvFabric -> when (env.maxMcVersion) {
-                null -> mcVersion
-                "" -> ">=$mcVersion"
-                else -> ">=$mcVersion <=${env.maxMcVersion}"
-            }
-            is EnvNeo -> when (env.maxMcVersion) {
-                null -> "[$mcVersion]"
-                "" -> "$[$mcVersion,)"
-                else -> "[$mcVersion,${env.maxMcVersion}]"
-            }
+            is EnvFabric -> fabricMcRange()
+            is EnvNeo -> env.mcRange
         },
         "issue_tracker" to mod.issueTracker,
         "loader" to when (env) {
             is EnvFabric -> env.fabricLoader
             is EnvNeo -> env.neoforgeVersion
         },
-        "api" to when (env) {
-            is EnvFabric -> env.fabricApi
-            is EnvNeo -> env.neoforgeVersion
-        },
         "loader_name" to loader,
         "license" to mod.license,
         "mixins_file" to mod.mixinsFile
     )
-    map.forEach { (key, value) ->
-        inputs.property(key, value)
-    }
-    if (env !is EnvFabric) {
-        exclude("fabric.mod.json")
-    }
-    if (env !is EnvNeo) {
-        exclude("META-INF")
-    }
+    map.forEach(inputs::property)
+    exclude(when (env) {
+        is EnvFabric -> "META-INF"
+        is EnvNeo -> "fabric.mod.json"
+    })
     filesMatching("fabric.mod.json") { expand(map) }
     filesMatching("META-INF/neoforge.mods.toml") { expand(map) }
 }
 
+fun fabricMcRange(): String {
+    val parts = env.mcRange.split(",")
+    if (parts.size == 1) {
+        assert(env.mcRange.startsWith("["))
+        assert(env.mcRange.endsWith("]"))
+        return env.mcRange.substring(1, env.mcRange.length - 1)
+    }
+    val (first, second) = parts.also { assert(it.size == 2) }
+    assert(first.length > 1)
+    val lowerBound = when (first.first()) {
+        '[' -> ">="
+        '(' -> ">"
+        else -> throw IllegalArgumentException("Invalid mcRange: ${env.mcRange}")
+    } + first.drop(1)
+    val upperBound = when (second.last()) {
+        ']' -> {
+            assert(second.length > 1)
+            "<=" + second.dropLast(1)
+        }
+        ')' -> {
+            if (second.length == 1) null
+            else "<" + second.substring(1)
+        }
+        else -> throw IllegalArgumentException("Invalid mcRange: ${env.mcRange}")
+    }
+    return listOfNotNull(lowerBound, upperBound)
+        .joinToString(" ")
+        .ifEmpty { "*" }
+}
+
 publishMods {
-    changelog = property("changelog") as String
+    changelog = System.getenv("CHANGELOG")
     type = STABLE
 
-    file = tasks.remapJar.get().archiveFile
-    additionalFiles.from(tasks.remapSourcesJar.get().archiveFile)
+    val jar = tasks.named(
+        if (obfuscated) "remapJar" else "jar"
+    ).get() as Jar
+    file = jar.archiveFile
+
+    val sourcesJar = tasks.named(
+        if (obfuscated) "remapSourcesJar" else "sourcesJar"
+    ).get() as Jar
+    additionalFiles.from(sourcesJar.archiveFile)
+
     when (env) {
         is EnvFabric -> modLoaders.addAll("fabric", "quilt")
         is EnvNeo -> modLoaders.add("neoforge")
@@ -386,14 +216,46 @@ publishMods {
         accessToken = providers.environmentVariable("MODRINTH_API_KEY")
         projectId = "VhUy58Cq"
         displayName = "Bundles Beyond ${version.get()}"
-        minecraftVersionRange {
-            start = mcVersion
-            end = env.maxMcVersion ?: mcVersion
-        }
+        minecraftVersions.addAll(getMinecraftVersionsForModrinth())
 
         if (env is EnvFabric) {
             requires("fabric-api")
             optional("modmenu")
         }
     }
+}
+
+fun getMinecraftVersionsForModrinth(): List<String> {
+    val parts = env.mcRange.split(",")
+    if (parts.size == 1) {
+        assert(env.mcRange.startsWith("["))
+        assert(env.mcRange.endsWith("]"))
+        return listOf(env.mcRange.substring(1, env.mcRange.length - 1))
+    }
+    val startId = parts[0].drop(1)
+    val excludeStart = parts[0].first() == '('
+    val excludeEnd = parts[1].last() == ')'
+    val endId = parts[1].dropLast(1).ifEmpty { "latest".also { assert(excludeEnd) } }
+
+    val versions = MinecraftApi().getVersions()
+        .filter { it.type == "release" }
+        .map { it.id }
+        .reversed()
+
+    val startIndex = versions.indexOf(startId).let {
+        if (it == -1) throw IllegalArgumentException("Invalid start version $startId")
+        it + if (excludeStart) 1 else 0
+    }
+
+    val endIndex = if (endId == "latest")
+        versions.size - 1
+    else
+        versions.indexOf(endId).let {
+            if (it == -1) throw IllegalArgumentException("Invalid end version $endId")
+            it + if (excludeEnd) 0 else 1
+        }
+
+    if (startIndex > endIndex) throw IllegalArgumentException("Start version $startId must be before end version $endId")
+
+    return versions.subList(startIndex, endIndex)
 }

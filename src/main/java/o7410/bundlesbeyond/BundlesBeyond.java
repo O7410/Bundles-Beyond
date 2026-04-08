@@ -3,11 +3,9 @@ package o7410.bundlesbeyond;
 //? if fabric {
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-//? if >=26.1 {
-/*import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
-*///?} else {
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-//?}
+//~ if >=26.1 KeyBinding -> KeyMapping
+//~ if >=26.1 keybinding -> keymapping
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 //?}
 //? if neoforge {
 /*import net.neoforged.api.distmarker.Dist;
@@ -28,7 +26,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ServerboundSelectBundleItemPacket;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources./*$ resource_location {*/Identifier/*$}*/;
+import net.minecraft.resources.Identifier;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.function.Consumer;
 
@@ -42,10 +40,10 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     //? if <1.21.10 {
-    /*public static final String KEY_CATEGORY = Util.makeDescriptionId("key.category", ResourceLocation.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
+    /*public static final String KEY_CATEGORY = Util.makeDescriptionId("key.category", Identifier.fromNamespaceAndPath(MOD_ID, "bundles_beyond"));
     *///?} else {
     public static final KeyMapping.Category KEY_CATEGORY = /*? if fabric {*/KeyMapping.Category.register/*?} else {*//*new KeyMapping.Category*//*?}*/(
-            /*$ resource_location {*/Identifier/*$}*/.fromNamespaceAndPath(MOD_ID, "bundles_beyond")
+            Identifier.fromNamespaceAndPath(MOD_ID, "bundles_beyond")
     );
     //?}
 
@@ -64,10 +62,6 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
         return BundlesBeyondConfig.instance().modEnabledState.isEnabled();
     }
 
-    // Used by static mixin handlers in 26.1+ that can't access instance fields.
-    // Set from instance context before static methods are called.
-    public static int lastBundleSize = 0;
-
     //? if fabric {
     @Override
     public void onInitializeClient() {
@@ -77,11 +71,8 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
         BundlesBeyondConfig.load();
 
         //? if fabric {
-        //? if >=26.1 {
-        /*registerKeybinds(KeyMappingHelper::registerKeyMapping);
-        *///?} else {
-        registerKeybinds(KeyBindingHelper::registerKeyBinding);
-        //?}
+        //~ if >=26.1 KeyBinding -> KeyMapping
+        registerKeybinds(KeyMappingHelper::registerKeyMapping);
         ClientCommandRegistrationCallback.EVENT.register(BundlesBeyondCommand::registerCommand);
         //?}
 
@@ -99,14 +90,12 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
     /*@SubscribeEvent
     private static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         //? if >=1.21.10 {
-        event.registerCategory(KEY_CATEGORY);
-        //?}
+        /^event.registerCategory(KEY_CATEGORY);
+        ^///?}
         registerKeybinds(event::register);
     }
-    *///?}
 
-    //? if neoforge {
-    /*@SubscribeEvent
+    @SubscribeEvent
     private static void onRegisterClientCommands(RegisterClientCommandsEvent event) {
         BundlesBeyondCommand.registerCommand(event.getDispatcher(), event.getBuildContext());
     }
@@ -114,11 +103,8 @@ public class BundlesBeyond/*? if fabric {*/ implements ClientModInitializer/*?}*
 
     public static int getKeyCode(KeyMapping keyBinding) {
         //? if fabric {
-        //? if >=26.1 {
-        /*return KeyMappingHelper.getBoundKeyOf(keyBinding).getValue();
-        *///?} else {
-        return KeyBindingHelper.getBoundKeyOf(keyBinding).getValue();
-        //?}
+        //~ if >=26.1 KeyBinding -> KeyMapping
+        return KeyMappingHelper.getBoundKeyOf(keyBinding).getValue();
         //?} else {
         /*return keyBinding.getKey().getValue();
         *///?}
