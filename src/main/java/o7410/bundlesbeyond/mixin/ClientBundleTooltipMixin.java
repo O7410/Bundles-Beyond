@@ -37,7 +37,7 @@ public abstract class ClientBundleTooltipMixin {
     //? if >=26.1 {
     @Unique private static int lastBundleSize = 0;
 
-    @Inject(method = "extractBundleWithItemsTooltip", at = @At("HEAD"))
+    @Inject(method = "extractImage", at = @At("HEAD"))
     private void captureBundleSize(CallbackInfo ci) {
         lastBundleSize = this.contents.size();
     }
