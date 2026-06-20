@@ -1,7 +1,7 @@
 plugins {
     id("dev.kikugie.stonecutter")
-    id("dev.architectury.loom") version "1.14-SNAPSHOT" apply false
-    id("dev.architectury.loom-no-remap") version "1.14-SNAPSHOT" apply false
+    id("dev.architectury.loom") version "1.17-SNAPSHOT" apply false
+    id("dev.architectury.loom-no-remap") version "1.17-SNAPSHOT" apply false
 }
 stonecutter active "26.1-fabric"
 

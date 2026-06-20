@@ -13,13 +13,14 @@ repositories {
     maven("https://maven.terraformersmc.com/") { name = "Terraformers" }
 }
 
-val (mcVersion, loader) = stonecutter.current.project.split('-', limit = 2)
+val (mcVersionName, loaderName) = stonecutter.current.project.split('-', limit = 2)
+val mcVersion = findProperty("mc_version.$mcVersionName") ?: mcVersionName
 val obfuscated = stonecutter.current.parsed <= "1.21.11"
 
 stonecutter {
     constants {
-        put("fabric", loader == "fabric")
-        put("neoforge", loader == "neoforge")
+        put("fabric", loaderName == "fabric")
+        put("neoforge", loaderName == "neoforge")
     }
 
     swaps {
@@ -47,24 +48,18 @@ stonecutter {
     }
 }
 
-sealed class Env {
-    val mcRange = property("mc_version_range.$mcVersion") as String
+// versioned property
+fun verProp(key: String) = property("$key.$mcVersionName")
+
+enum class Loader {
+    FABRIC,
+    NEOFORGE
 }
 
-class EnvFabric : Env() {
-    val fabricLoader = property("fabric_loader") as String
-    val fabricApi = property("fabric_api.$mcVersion") as String
-    val modmenu = property("modmenu.$mcVersion") as String
-}
-
-class EnvNeo : Env() {
-    val neoforgeVersion = property("neoforge.$mcVersion") as String
-}
-
-val env = when (loader) {
-    "fabric" -> EnvFabric()
-    "neoforge" -> EnvNeo()
-    else -> throw GradleException("Unsupported loader: $loader")
+val loader = when (loaderName) {
+    "fabric" -> Loader.FABRIC
+    "neoforge" -> Loader.NEOFORGE
+    else -> throw GradleException("This shouldn't happen!")
 }
 
 class ModProperties {
@@ -83,7 +78,7 @@ class ModProperties {
 
 val mod = ModProperties()
 
-version = "${mod.version}+$mcVersion+$loader"
+version = "${mod.version}+$mcVersionName+$loaderName"
 group = property("maven_group").toString()
 
 loom {
@@ -103,24 +98,26 @@ loom {
 base.archivesName = property("archives_base_name") as String
 
 dependencies {
-    minecraft("com.mojang:minecraft:${mcVersion}")
+    minecraft("com.mojang:minecraft:$mcVersion")
 
-    if (env is EnvFabric) {
-        modImplementation("net.fabricmc:fabric-loader:${env.fabricLoader}")
-        modImplementation("net.fabricmc.fabric-api:fabric-api:${env.fabricApi}")
-        modImplementation("com.terraformersmc:modmenu:${env.modmenu}")
-    }
-    if (env is EnvNeo) {
-        "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion}")
+    when (loader) {
+        Loader.FABRIC -> {
+            modImplementation("net.fabricmc:fabric-loader:${property("fabric_loader")}")
+            modImplementation("net.fabricmc.fabric-api:fabric-api:${verProp("fabric_api")}")
+            modImplementation("com.terraformersmc:modmenu:${verProp("modmenu")}")
+        }
+        Loader.NEOFORGE -> {
+            "neoForge"("net.neoforged:neoforge:${verProp("neoforge")}")
+        }
     }
     if (obfuscated) {
         mappings(loom.layered {
             officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-${mcVersion}:${property("parchment.$mcVersion")}@zip")
+            parchment("org.parchmentmc.data:parchment-$mcVersion:${verProp("parchment")}@zip")
         })
     }
 
-    vineflowerDecompilerClasspath("org.vineflower:vineflower:1.11.2")
+    vineflowerDecompilerClasspath("org.vineflower:vineflower:1.12.0")
 }
 
 java {
@@ -141,41 +138,41 @@ tasks.processResources {
         "website" to mod.homepage,
         "icon" to mod.icon,
         "mc_ver" to mcVersion,
-        "mc_range" to when (env) {
-            is EnvFabric -> fabricMcRange()
-            is EnvNeo -> env.mcRange
+        "mc_range" to when (loader) {
+            Loader.FABRIC -> fabricMcRange(verProp("mc_version_range") as String)
+            Loader.NEOFORGE -> verProp("mc_version_range")
         },
         "issue_tracker" to mod.issueTracker,
-        "loader" to when (env) {
-            is EnvFabric -> env.fabricLoader
-            is EnvNeo -> env.neoforgeVersion
+        "loader" to when (loader) {
+            Loader.FABRIC -> property("fabric_loader")
+            Loader.NEOFORGE -> verProp("neoforge")
         },
-        "loader_name" to loader,
+        "loader_name" to loaderName,
         "license" to mod.license,
         "mixins_file" to mod.mixinsFile
     )
     map.forEach(inputs::property)
-    exclude(when (env) {
-        is EnvFabric -> "META-INF"
-        is EnvNeo -> "fabric.mod.json"
+    exclude(when (loader) {
+        Loader.FABRIC -> "META-INF"
+        Loader.NEOFORGE -> "fabric.mod.json"
     })
     filesMatching("fabric.mod.json") { expand(map) }
     filesMatching("META-INF/neoforge.mods.toml") { expand(map) }
 }
 
-fun fabricMcRange(): String {
-    val parts = env.mcRange.split(",")
+fun fabricMcRange(mcRange: String): String {
+    val parts = mcRange.split(",")
     if (parts.size == 1) {
-        assert(env.mcRange.startsWith("["))
-        assert(env.mcRange.endsWith("]"))
-        return env.mcRange.substring(1, env.mcRange.length - 1)
+        assert(mcRange.startsWith("["))
+        assert(mcRange.endsWith("]"))
+        return mcRange.substring(1, mcRange.length - 1)
     }
     val (first, second) = parts.also { assert(it.size == 2) }
     assert(first.length > 1)
     val lowerBound = when (first.first()) {
         '[' -> ">="
         '(' -> ">"
-        else -> throw IllegalArgumentException("Invalid mcRange: ${env.mcRange}")
+        else -> throw IllegalArgumentException("Invalid mcRange: $mcRange")
     } + first.drop(1)
     val upperBound = when (second.last()) {
         ']' -> {
@@ -186,7 +183,7 @@ fun fabricMcRange(): String {
             if (second.length == 1) null
             else "<" + second.substring(1)
         }
-        else -> throw IllegalArgumentException("Invalid mcRange: ${env.mcRange}")
+        else -> throw IllegalArgumentException("Invalid mcRange: $mcRange")
     }
     return listOfNotNull(lowerBound, upperBound)
         .joinToString(" ")
@@ -207,9 +204,9 @@ publishMods {
     ).get() as Jar
     additionalFiles.from(sourcesJar.archiveFile)
 
-    when (env) {
-        is EnvFabric -> modLoaders.addAll("fabric", "quilt")
-        is EnvNeo -> modLoaders.add("neoforge")
+    when (loader) {
+        Loader.FABRIC -> modLoaders.addAll("fabric", "quilt")
+        Loader.NEOFORGE -> modLoaders.add("neoforge")
     }
 
     modrinth {
@@ -218,7 +215,7 @@ publishMods {
         displayName = "Bundles Beyond ${version.get()}"
         minecraftVersions.addAll(getMinecraftVersionsForModrinth())
 
-        if (env is EnvFabric) {
+        if (loader == Loader.FABRIC) {
             requires("fabric-api")
             optional("modmenu")
         }
@@ -226,11 +223,12 @@ publishMods {
 }
 
 fun getMinecraftVersionsForModrinth(): List<String> {
-    val parts = env.mcRange.split(",")
+    val mcRange = verProp("mc_version_range") as String
+    val parts = mcRange.split(",")
     if (parts.size == 1) {
-        assert(env.mcRange.startsWith("["))
-        assert(env.mcRange.endsWith("]"))
-        return listOf(env.mcRange.substring(1, env.mcRange.length - 1))
+        assert(mcRange.startsWith("["))
+        assert(mcRange.endsWith("]"))
+        return listOf(mcRange.substring(1, mcRange.length - 1))
     }
     val startId = parts[0].drop(1)
     val excludeStart = parts[0].first() == '('

@@ -10,7 +10,7 @@ pluginManagement {
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.9"
+    id("dev.kikugie.stonecutter") version "0.9.4"
 }
 
 val versions = listOf("1.21.3", "1.21.4", "1.21.8", "1.21.10", "1.21.11", "26.1")
@@ -21,6 +21,6 @@ stonecutter {
             version("$version-fabric", version)
             version("$version-neoforge", version)
         }
-        vcsVersion = "26.1-fabric"
+        vcsVersion = "${versions.last()}-fabric"
     }
 }

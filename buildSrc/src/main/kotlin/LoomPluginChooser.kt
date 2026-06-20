@@ -1,12 +1,10 @@
-import dev.kikugie.stonecutter.build.StonecutterBuildExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.the
 
 open class LoomPluginChooser : Plugin<Project> {
     override fun apply(target: Project): Unit = with(target) {
-        val current = the<StonecutterBuildExtension>().current.parsed
-        if (current < "26.1") {
+        if (target.name.startsWith("1.")) {
             this.plugins.apply("dev.architectury.loom")
         } else {
             this.plugins.apply("dev.architectury.loom-no-remap")
