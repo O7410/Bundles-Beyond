@@ -41,7 +41,8 @@ public class BundleTooltipAdditions {
         }
 
         if (keyCode == GLFW.GLFW_KEY_SPACE) {
-            if (client.screen instanceof AbstractContainerScreen<?> handledScreen) {
+            //~ if >=26.2 screen -> 'gui.screen()'
+            if (client.gui.screen() instanceof AbstractContainerScreen<?> handledScreen) {
                 AbstractContainerMenu currentScreenHandler = player.containerMenu;
                 int button = currentScreenHandler.getCarried().isEmpty() ? 1 : 0; // right : left
                 //~ if >=26.1 ClickType -> ContainerInput

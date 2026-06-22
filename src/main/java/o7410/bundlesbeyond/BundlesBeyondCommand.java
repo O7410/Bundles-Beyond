@@ -91,12 +91,14 @@ public class BundlesBeyondCommand {
     private static int configScreen(CommandContext<? extends SharedSuggestionProvider> context) {
         Minecraft client = Minecraft.getInstance();
         //? if >=1.21.10 {
-        if (client.screen instanceof ChatScreen chatScreen) {
+        //~ if >=26.2 screen -> 'gui.screen()'
+        if (client.gui.screen() instanceof ChatScreen chatScreen) {
             chatScreen.insertText("", true);
         }
         //?}
         client.setLastInputType(InputType.NONE);
-        client.setScreen(new BundlesBeyondConfigScreen(null));
+        //~ if >=26.2 setScreen -> 'gui.setScreen'
+        client.gui.setScreen(new BundlesBeyondConfigScreen(null));
         return 0;
     }
 

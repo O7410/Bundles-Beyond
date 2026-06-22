@@ -89,9 +89,9 @@ loom {
     }
 
     runConfigs.all {
-        ideConfigGenerated(stonecutter.current.isActive)
-        vmArgs("-Dmixin.debug.export=true")
-        runDir = "../../run"
+        generateRunConfig = stonecutter.current.isActive
+        jvmArguments.add("-Dmixin.debug.export=true")
+        runDirectory = file("../../run")
     }
 }
 
@@ -144,7 +144,7 @@ tasks.processResources {
         },
         "issue_tracker" to mod.issueTracker,
         "loader" to when (loader) {
-            Loader.FABRIC -> property("fabric_loader")
+            Loader.FABRIC -> /*property("fabric_loader")*/"0.18.6"
             Loader.NEOFORGE -> verProp("neoforge")
         },
         "loader_name" to loaderName,

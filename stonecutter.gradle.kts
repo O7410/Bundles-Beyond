@@ -3,7 +3,7 @@ plugins {
     id("dev.architectury.loom") version "1.17-SNAPSHOT" apply false
     id("dev.architectury.loom-no-remap") version "1.17-SNAPSHOT" apply false
 }
-stonecutter active "26.1-fabric"
+stonecutter active "26.2-fabric"
 
 subprojects {
     extra["loom.platform"] = project.name.split('-').last()

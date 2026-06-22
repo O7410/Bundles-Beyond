@@ -220,7 +220,8 @@ public class BundlesBeyondConfigScreen extends Screen {
 
     @Override
     public void onClose() {
-        this.minecraft.setScreen(this.parentScreen);
+        //~ if >=26.2 setScreen -> 'gui.setScreen'
+        this.minecraft.gui.setScreen(this.parentScreen);
     }
 
     private void reloadConfig(Button button) {
