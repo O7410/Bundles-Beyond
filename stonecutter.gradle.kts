@@ -11,5 +11,9 @@ subprojects {
 
 stonecutter tasks {
     // Make newer versions be published last
-    order("publishModrinth")
+    order(
+        "publishModrinth",
+        // if the mc version is the same, fabric is "bigger"
+        versionComparator.thenComparing { it.project.name.split('-').last() == "fabric" }
+    )
 }
