@@ -191,7 +191,7 @@ fun fabricMcRange(mcRange: String): String {
 }
 
 publishMods {
-    changelog = System.getenv("CHANGELOG")
+    changelog = providers.environmentVariable("CHANGELOG")
     type = STABLE
 
     val jar = tasks.named(
