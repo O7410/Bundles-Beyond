@@ -59,8 +59,8 @@ public class BundlesBeyondConfig {
     public ScrollMode scrollMode = ScrollMode.VANILLA;
     public ModEnabledState modEnabledState = ModEnabledState.ON;
     public int slotSize = 24;
-    public boolean containerSlots = true;
-    public boolean reverseView = true;
+    public boolean containerSlots = false;
+    public boolean reverseView = false;
 
     public static BundlesBeyondConfig instance() {
         return instance;

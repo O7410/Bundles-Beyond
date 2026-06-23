@@ -4,7 +4,7 @@ import org.gradle.jvm.tasks.Jar
 plugins {
     `maven-publish`
     id("loom-plugin-chooser")
-    id("me.modmuss50.mod-publish-plugin") version "1.1.0"
+    id("me.modmuss50.mod-publish-plugin") version "2.0.1"
 }
 
 repositories {
@@ -144,7 +144,7 @@ tasks.processResources {
         },
         "issue_tracker" to mod.issueTracker,
         "loader" to when (loader) {
-            Loader.FABRIC -> /*property("fabric_loader")*/"0.18.6"
+            Loader.FABRIC -> project.property("fabric_loader")
             Loader.NEOFORGE -> verProp("neoforge")
         },
         "loader_name" to loaderName,
@@ -181,7 +181,7 @@ fun fabricMcRange(mcRange: String): String {
         }
         ')' -> {
             if (second.length == 1) null
-            else "<" + second.substring(1)
+            else "<" + second.dropLast(1)
         }
         else -> throw IllegalArgumentException("Invalid mcRange: $mcRange")
     }
@@ -246,7 +246,7 @@ fun getMinecraftVersionsForModrinth(): List<String> {
     }
 
     val endIndex = if (endId == "latest")
-        versions.size - 1
+        versions.size
     else
         versions.indexOf(endId).let {
             if (it == -1) throw IllegalArgumentException("Invalid end version $endId")
